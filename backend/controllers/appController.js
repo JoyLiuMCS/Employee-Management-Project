@@ -1,0 +1,23 @@
+const OnboardingApplication = require('../models/OnboardingApplication');
+
+const submitApplication = async (req, res) => {
+  try {
+    const { visaType, workAuthorizationStart, workAuthorizationEnd, optReceipt, optEAD, i983, i20 } = req.body;
+    const newApp = new OnboardingApplication({
+      userId: req.user.userId,
+      visaType,
+      workAuthorizationStart,
+      workAuthorizationEnd,
+      optReceipt,
+      optEAD,
+      i983,
+      i20
+    });
+    await newApp.save();
+    res.status(201).json({ message: 'Application submitted successfully' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+module.exports = { submitApplication };

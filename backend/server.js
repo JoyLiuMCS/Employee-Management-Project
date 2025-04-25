@@ -1,30 +1,24 @@
-const express = require('express');
-const mongoose = require('mongoose');
-const dotenv = require('dotenv');
-const cors = require('cors');
+const express = require("express");
+const path = require("path");
+const mongoose = require("./db");
+const userRoutes = require('./routes/userRoutes');
+const authRoutes = require('./routes/authRoutes');
+const appRoutes = require('./routes/appRoutes');
+const docRoutes = require('./routes/documentRoutes');
 
-dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 5000;
 
-app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use("/public", express.static(path.join(__dirname, "public")));
 
-// MongoDB connection
-mongoose.connect(process.env.MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-}).then(() => console.log('MongoDB connected'))
-  .catch(err => console.log('MongoDB connection error:', err));
-
-// Routes (placeholder)
-app.get('/', (req, res) => {
-  res.send('API is running...');
-});
-
-// Add your HR and Employee-related routes here...
-
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+app.use('/uploads', express.static('uploads'));
+app.use('/api', userRoutes);  // Make sure this is correct
+app.use('/api/auth', authRoutes); 
+app.use('/api/applications', appRoutes);
+app.use('/api/documents', docRoutes);
+mongoose.connection.once("open", () => {
+  console.log("Server running on http://localhost:3000");
+  app.listen(3000);  // Listening on port 3000
 });
