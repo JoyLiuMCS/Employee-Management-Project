@@ -3,13 +3,11 @@ const express = require('express');
 const router = express.Router();
 const upload = require('../middleware/upload');
 const { authMiddleware, authorizeRoles } = require('../middleware/authMiddleware');
-const documentController = require('../controllers/documentController');
+const { uploadDocument, getInProgressDocuments, approveDocument, rejectDocument } = require('../controllers/documentController');
 
-router.post('/upload', 
-  authMiddleware, 
-  authorizeRoles('employee'), 
-  upload.single('file'), 
-  documentController.uploadDocument
-);
+router.post('/upload', authMiddleware, authorizeRoles('employee'), upload.single('file'), uploadDocument);
+router.get('/in-progress', authMiddleware, authorizeRoles('hr'), getInProgressDocuments);
+router.post('/approve/:id', authMiddleware, authorizeRoles('hr'), approveDocument);
+router.post('/reject/:id', authMiddleware, authorizeRoles('hr'), rejectDocument);
 
 module.exports = router;
