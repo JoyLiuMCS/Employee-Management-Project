@@ -2,9 +2,10 @@ import axios from 'axios';
 import { showError } from './message';
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000',
+  baseURL: import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000/api',
   withCredentials: true,
 });
+
 
 // 请求拦截器可以加token（如果需要）
 // api.interceptors.request.use(config => {...});
