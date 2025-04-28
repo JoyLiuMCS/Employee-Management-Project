@@ -10,26 +10,43 @@ const VisaReviewPage = () => {
   const [searchText, setSearchText] = useState('');
 
   useEffect(() => {
-    fetchInProgress();
-    fetchAllEmployees();
+    loadData();
   }, []);
+
+  const loadData = async () => {
+    await Promise.all([
+      fetchInProgress(),
+      fetchAllEmployees(),
+    ]);
+  };
 
   const fetchInProgress = async () => {
     try {
-      const res = await api.get('/api/documents/in-progress'); 
+      const res = await api.get('/api/documents/in-progress');
       setInProgressData(res.data);
     } catch (err) {
       console.error('Error fetching in-progress data', err);
+      message.error('Failed to load in-progress data');
     }
   };
 
   const fetchAllEmployees = async () => {
     try {
       const res = await api.get('/api/users');
-      const employees = res.data.filter(u => u.role !== 'hr');
+      const employees = res.data
+        .filter(u => u.role !== 'hr')
+        .map(emp => ({
+          ...emp,
+          daysRemaining: emp.workAuthEndDate ? 
+            Math.ceil((new Date(emp.workAuthEndDate) - new Date()) / (1000 * 60 * 60 * 24)) 
+            : '',
+          workAuthStartDate: emp.workAuthStartDate ? emp.workAuthStartDate.split('T')[0] : '',
+          workAuthEndDate: emp.workAuthEndDate ? emp.workAuthEndDate.split('T')[0] : '',
+        }));
       setAllEmployees(employees);
     } catch (err) {
       console.error('Error fetching all employees', err);
+      message.error('Failed to load employee data');
     }
   };
 
@@ -37,18 +54,20 @@ const VisaReviewPage = () => {
     try {
       await api.post(`/api/documents/approve/${docId}`);
       message.success('Document approved!');
-      fetchInProgress(); // 刷新数据
+      loadData();
     } catch (err) {
       console.error(err);
       message.error('Failed to approve');
     }
   };
 
-  const handleReject = async (docId, feedback) => {
+  const handleReject = async (docId) => {
+    const feedback = prompt('Please enter rejection feedback:');
+    if (!feedback) return; // 用户取消了
     try {
       await api.post(`/api/documents/reject/${docId}`, { feedback });
       message.success('Document rejected!');
-      fetchInProgress();
+      loadData();
     } catch (err) {
       console.error(err);
       message.error('Failed to reject');
@@ -65,10 +84,22 @@ const VisaReviewPage = () => {
     }
   };
 
+  const handleSearchChange = (e) => {
+    setSearchText(e.target.value);
+  };
+
+  const filteredEmployees = allEmployees.filter(emp => {
+    const lower = searchText.toLowerCase();
+    return (
+      emp.firstName?.toLowerCase().includes(lower) ||
+      emp.lastName?.toLowerCase().includes(lower) ||
+      emp.preferredName?.toLowerCase().includes(lower)
+    );
+  });
+
   const columnsInProgress = [
     {
       title: 'Name',
-      dataIndex: 'fullName',
       render: (_, record) => `${record.firstName} ${record.lastName}`,
     },
     {
@@ -106,10 +137,7 @@ const VisaReviewPage = () => {
               </Button>
               <Button
                 danger
-                onClick={() => {
-                  const feedback = prompt('Please enter rejection feedback:');
-                  if (feedback) handleReject(record.documentId, feedback);
-                }}
+                onClick={() => handleReject(record.documentId)}
               >
                 Reject
               </Button>
@@ -127,7 +155,6 @@ const VisaReviewPage = () => {
   const columnsAll = [
     {
       title: 'Name',
-      dataIndex: 'fullName',
       render: (_, record) => `${record.firstName} ${record.lastName}`,
     },
     {
@@ -152,19 +179,6 @@ const VisaReviewPage = () => {
     },
   ];
 
-  const handleSearch = (value) => {
-    setSearchText(value);
-  };
-
-  const filteredAllEmployees = allEmployees.filter((emp) => {
-    const lower = searchText.toLowerCase();
-    return (
-      emp.firstName?.toLowerCase().includes(lower) ||
-      emp.lastName?.toLowerCase().includes(lower) ||
-      emp.preferredName?.toLowerCase().includes(lower)
-    );
-  });
-
   return (
     <div style={{ padding: 24 }}>
       <h1>Visa Status Management</h1>
@@ -174,25 +188,25 @@ const VisaReviewPage = () => {
           <Table
             columns={columnsInProgress}
             dataSource={inProgressData}
-            rowKey="documentId"
+            rowKey={record => record.documentId || record.userId}
             pagination={{ pageSize: 6 }}
           />
         </Tabs.TabPane>
 
-        <Tabs.TabPane tab="All Employees" key="all">
+        <Tabs.TabPane tab="all" key="all">
           <div style={{ marginBottom: 16 }}>
             <Search
               placeholder="Search employees"
               allowClear
-              onChange={(e) => handleSearch(e.target.value)}
+              onChange={handleSearchChange}
+              value={searchText}
               style={{ width: 300 }}
             />
           </div>
-
           <Table
             columns={columnsAll}
-            dataSource={filteredAllEmployees}
-            rowKey="_id"
+            dataSource={filteredEmployees}
+            rowKey={record => record._id}
             pagination={{ pageSize: 8 }}
           />
         </Tabs.TabPane>
