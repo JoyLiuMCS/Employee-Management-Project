@@ -1,45 +1,31 @@
 const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
 
 const userSchema = new mongoose.Schema({
-  name: String,
-  preferredName: String,
+  name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
-  password: String,
-  ssn: String,
-  phone: String,
-  workAuth: {
-    title: String,
-    startDate: Date,
-    endDate: Date
-  },
-  role: { type: String, enum: ['employee', 'hr'], default: 'employee' },
-  optEAD: {
-    status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
-    feedback: String
-  },
-  i983: {
-    uploadedDoc: String, // URL or filename
-    status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
-    feedback: String
-  },
-  documents: [{
-    name: String,
-    type: String,
-    status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
-    fileUrl: String,
-    feedback: String
-  }],
-  registrationToken: {
-    token: String,
-    expiresAt: Date,
-    used: { type: Boolean, default: false }
-  },
-  onboardingApplication: {
-    status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
-    data: mongoose.Schema.Types.Mixed,
-    feedback: String
-  },
-  createdAt: { type: Date, default: Date.now }
+  password: { type: String, required: true },
+  role: { type: String, enum: ['employee', 'hr'], default: 'employee' } // 用来区分员工 vs HR
 });
 
-module.exports = mongoose.model('User', userSchema);
+// 在保存用户之前加密密码
+userSchema.pre('save', async function (next) {
+  if (!this.isModified('password')) return next();
+  const salt = await bcrypt.genSalt(10);
+  this.password = await bcrypt.hash(this.password, salt);
+  next();
+});
+
+// 比较密码的方法
+userSchema.methods.matchPassword = async function (enteredPassword) {
+  return await bcrypt.compare(enteredPassword, this.password);
+};
+
+userSchema.methods.comparePassword = async function (password) {
+  return await bcrypt.compare(password, this.password);
+};
+
+
+const User = mongoose.model('User', userSchema);
+
+module.exports = User;

@@ -1,8 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const auth = require('../middleware/authMiddleware');
+const { authMiddleware } = require('../middleware/authMiddleware');
 const { submitApplication } = require('../controllers/appController');
 
-router.post('/submit', auth, submitApplication);
+// Protected route with authentication
+router.post('/submitApp', authMiddleware, submitApplication);
 
 module.exports = router;

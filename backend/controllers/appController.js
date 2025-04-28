@@ -4,7 +4,7 @@ const submitApplication = async (req, res) => {
   try {
     const { visaType, workAuthorizationStart, workAuthorizationEnd, optReceipt, optEAD, i983, i20 } = req.body;
     const newApp = new OnboardingApplication({
-      userId: req.user.userId,
+      userId: req.user.userId,  // Requires auth middleware to set req.user
       visaType,
       workAuthorizationStart,
       workAuthorizationEnd,

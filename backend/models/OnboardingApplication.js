@@ -9,6 +9,8 @@ const onboardingSchema = new mongoose.Schema({
   optEAD: { type: Boolean },
   i983: { type: Boolean },
   i20: { type: Boolean },
+  status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' }, // 新增
+  rejectionReason: { type: String }, // 新增
   createdAt: { type: Date, default: Date.now }
 });
 

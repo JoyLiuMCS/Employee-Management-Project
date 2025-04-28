@@ -1,9 +1,15 @@
+// routes/documentRoutes.js
 const express = require('express');
 const router = express.Router();
-const auth = require('../middleware/authMiddleware');
 const upload = require('../middleware/upload');
-const { uploadDocument } = require('../controllers/documentController');
+const { authMiddleware, authorizeRoles } = require('../middleware/authMiddleware');
+const documentController = require('../controllers/documentController');
 
-router.post('/upload', auth, upload.single('file'), uploadDocument);
+router.post('/upload', 
+  authMiddleware, 
+  authorizeRoles('employee'), 
+  upload.single('file'), 
+  documentController.uploadDocument
+);
 
 module.exports = router;
