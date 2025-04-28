@@ -4,7 +4,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useEffect, useRef } from 'react';
 import { loginSuccess } from '../../redux/slices/authSlice';
 import api from '../../utils/api';
-import { showLoading, showSuccess, showError, hideLoading } from '../../utils/message';  // ⭐️ 引入统一message工具
+import { showLoading, showSuccess, showError, hideLoading } from '../../utils/message';
 
 const LoginPage = () => {
   const dispatch = useDispatch();
@@ -15,29 +15,28 @@ const LoginPage = () => {
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const redirectParam = params.get('redirect');
-    console.log('📍LoginPage mounted, location.search:', location.search);
-    console.log('📍Parsed redirect param:', redirectParam);
     if (redirectParam && !hasShownMessage.current) {
       hasShownMessage.current = true;
       setTimeout(() => {
-        showError('Please login first!'); // 用封装的 showError
+        showError('Please login first!');
       }, 300);
     }
   }, [location.search]);
-  
+
   const onFinish = async (values) => {
     try {
-      const params = new URLSearchParams(location.search);
-      const redirectPath = params.get('redirect') || 'onboarding';
-
       showLoading('Logging in...');
-
       const res = await api.post('/auth/login', values);
-      dispatch(loginSuccess({ user: res.data.user, token: res.data.token }));
-      localStorage.setItem('token', res.data.token);
+      const { user, token } = res.data;
+      dispatch(loginSuccess({ user, token }));
+      localStorage.setItem('token', token);
 
       showSuccess('Login successful!');
-      navigate(`/${redirectPath}`);
+      if (user.role === 'hr') {
+        navigate('/hr/dashboard');
+      } else {
+        navigate('/profile');
+      }
     } catch (err) {
       console.error(err);
       showError('Login failed. Please check your credentials.');
@@ -48,13 +47,13 @@ const LoginPage = () => {
 
   return (
     <div style={{ display: 'flex', height: '100vh', justifyContent: 'center', alignItems: 'center' }}>
-      <Card title="Employee Login" style={{ width: 400 }}>
+      <Card title="Login" style={{ width: 400 }}>
         <Form layout="vertical" onFinish={onFinish}>
-          <Form.Item label="Username" name="username" rules={[{ required: true }]}>
+          <Form.Item label="Email" name="email" rules={[{ required: true, message: 'Please input your email!' }]}>
             <Input />
           </Form.Item>
 
-          <Form.Item label="Password" name="password" rules={[{ required: true }]}>
+          <Form.Item label="Password" name="password" rules={[{ required: true, message: 'Please input your password!' }]}>
             <Input.Password />
           </Form.Item>
 
