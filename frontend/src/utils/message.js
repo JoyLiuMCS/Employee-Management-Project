@@ -1,25 +1,24 @@
 import { message } from 'antd';
 
-// 统一设置 message 全局默认配置
-message.config({
-  duration: 2,  // 默认持续2秒
-  maxCount: 3,  // 同时最多显示3个message
-});
+let loadingMessage = null;
 
-const showLoading = (content = 'Loading...') => {
-  message.loading({ content, key: 'global', duration: 0 });
+export const showLoading = (content = 'Loading...') => {
+  if (!loadingMessage) {
+    loadingMessage = message.loading(content, 0);
+  }
 };
 
-const showSuccess = (content = 'Success!') => {
-  message.success({ content, key: 'global', duration: 2 });
+export const hideLoading = () => {
+  if (loadingMessage) {
+    loadingMessage();
+    loadingMessage = null;
+  }
 };
 
-const showError = (content = 'Something went wrong!') => {
-  message.error({ content, key: 'global', duration: 2 });
+export const showSuccess = (content) => {
+  message.success(content);
 };
 
-const hideLoading = () => {
-  message.destroy('global');  // 销毁全局loading
+export const showError = (content) => {
+  message.error(content);
 };
-
-export { showLoading, showSuccess, showError, hideLoading };
