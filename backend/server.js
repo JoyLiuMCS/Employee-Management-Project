@@ -10,7 +10,13 @@ const appRoutes = require('./routes/appRoutes');
 const applicationRoutes = require('./routes/applicationRoutes');
 
 const app = express();
-app.use(cors());
+
+// ✅ 正确 CORS 配置（解决 withCredentials + CORS 问题）
+app.use(cors({
+  origin: 'http://localhost:5174',  // 你的前端地址
+  credentials: true                 // 必须允许带 cookie 和 token
+}));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use("/public", express.static(path.join(__dirname, "public")));
@@ -18,11 +24,12 @@ console.log('Mounting application routes at /api/applications');
 
 app.use('/api/applications', applicationRoutes);
 app.use('/api/users', userRoutes);
-app.use('/api/submitApp', appRoutes);  // Now using your real route
+app.use('/api/submitApp', appRoutes);
 app.use('/uploads', express.static('uploads'));
 app.use('/api/auth', authRoutes); 
 app.use('/api/documents', docRoutes);
+
 mongoose.connection.once("open", () => {
   console.log("Server running on http://localhost:3000");
-  app.listen(3000);  // Listening on port 3000
+  app.listen(3000);
 });
