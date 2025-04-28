@@ -8,6 +8,8 @@ const authRoutes = require('./routes/authRoutes');
 const docRoutes = require('./routes/documentRoutes');
 const appRoutes = require('./routes/appRoutes');
 const applicationRoutes = require('./routes/applicationRoutes');
+const errorHandler = require('./middleware/errorHandler');
+const emailRoutes = require('./routes/emailRoutes');
 
 const app = express();
 
@@ -28,6 +30,8 @@ app.use('/api/submitApp', appRoutes);
 app.use('/uploads', express.static('uploads'));
 app.use('/api/auth', authRoutes); 
 app.use('/api/documents', docRoutes);
+app.use('/api/email', emailRoutes);
+app.use(errorHandler);
 
 mongoose.connection.once("open", () => {
   console.log("Server running on http://localhost:3000");

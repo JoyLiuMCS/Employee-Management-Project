@@ -1,6 +1,20 @@
 // controllers/documentController.js
 const Document = require('../models/Document');
 const User = require('../models/User');
+const path = require('path');
+const fs = require('fs');
+
+const downloadDocument = (req, res, next) => {
+  const { filename } = req.params;
+  const filePath = path.join(__dirname, '../uploads', filename);
+
+  fs.access(filePath, fs.constants.F_OK, (err) => {
+    if (err) {
+      return res.status(404).json({ message: 'File not found' });
+    }
+    res.download(filePath);
+  });
+};
 
 // 员工上传文档
 const uploadDocument = async (req, res) => {
@@ -15,7 +29,8 @@ const uploadDocument = async (req, res) => {
     await newDoc.save();
     res.status(201).json({ message: 'Document uploaded successfully' });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    next(err);
+    //res.status(500).json({ error: err.message });
   }
 };
 
@@ -100,6 +115,7 @@ const rejectDocument = async (req, res) => {
 };
 
 module.exports = {
+    downloadDocument,
   uploadDocument,
   getInProgressDocuments,
   approveDocument,

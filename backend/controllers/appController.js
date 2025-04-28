@@ -16,7 +16,7 @@ const submitApplication = async (req, res) => {
     await newApp.save();
     res.status(201).json({ message: 'Application submitted successfully' });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    next(err);
   }
 };
 

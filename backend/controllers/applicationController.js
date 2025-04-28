@@ -9,7 +9,8 @@ const getAllApplications = async (req, res) => {
   
       res.status(200).json({ success: true, applications: allApplications });
     } catch (err) {
-      res.status(500).json({ success: false, message: err.message });
+        next(err);
+      //res.status(500).json({ success: false, message: err.message });
     }
   };
 
@@ -19,7 +20,8 @@ const getPendingApplications = async (req, res) => {
   
       res.status(200).json({ success: true, applications: pendingApplications });
     } catch (err) {
-      res.status(500).json({ success: false, message: err.message });
+        next(err);
+      //res.status(500).json({ success: false, message: err.message });
     }
   };
 
@@ -41,7 +43,8 @@ const approveApplication = async (req, res) => {
 
     res.status(200).json({ success: true, message: 'Application approved' });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    next(err);
+    //res.status(500).json({ success: false, message: err.message });
   }
 };
 
@@ -66,7 +69,8 @@ const rejectApplication = async (req, res) => {
 
     res.status(200).json({ success: true, message: 'Application rejected' });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    next(err);
+    //res.status(500).json({ success: false, message: err.message });
   }
 };
 

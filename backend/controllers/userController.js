@@ -7,7 +7,8 @@ const userController = {
       const users = await User.find();
       res.status(200).json(users);
     } catch (err) {
-      res.status(500).json({ message: 'Server error', error: err });
+        next(err);
+      //res.status(500).json({ message: 'Server error', error: err });
     }
   },
 
@@ -20,7 +21,8 @@ const userController = {
       }
       res.status(200).json(user);  // Return the user with the given ID
     } catch (err) {
-      res.status(500).json({ message: 'Server error', error: err });
+        next(err);
+      //res.status(500).json({ message: 'Server error', error: err });
     }
   },
 

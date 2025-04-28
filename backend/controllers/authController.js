@@ -33,7 +33,8 @@ const authController = {
 
       res.status(201).json({ success: true, message: 'User registered successfully' });
     } catch (err) {
-      res.status(500).json({ success: false, message: 'Server error', error: err.message });
+        next(err);
+      //res.status(500).json({ success: false, message: 'Server error', error: err.message });
     }
   },
 
@@ -56,7 +57,8 @@ const authController = {
         user: { id: user._id, name: user.name, role: user.role }
       });
     } catch (err) {
-      res.status(500).json({ success: false, message: 'Server error', error: err.message });
+        next(err);
+      //res.status(500).json({ success: false, message: 'Server error', error: err.message });
     }
   },
 
@@ -73,7 +75,8 @@ const authController = {
       const newAccessToken = generateAccessToken(user);
       res.status(200).json({ success: true, accessToken: newAccessToken });
     } catch (err) {
-      res.status(400).json({ success: false, message: 'Invalid refresh token', error: err.message });
+        next(err);
+      //res.status(400).json({ success: false, message: 'Invalid refresh token', error: err.message });
     }
   }
 };
