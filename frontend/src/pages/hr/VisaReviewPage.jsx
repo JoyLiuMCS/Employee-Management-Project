@@ -22,7 +22,7 @@ const VisaReviewPage = () => {
 
   const fetchInProgress = async () => {
     try {
-      const res = await api.get('/api/documents/in-progress');
+      const res = await api.get('/documents/in-progress');  // ✅
       setInProgressData(res.data);
     } catch (err) {
       console.error('Error fetching in-progress data', err);
@@ -32,7 +32,7 @@ const VisaReviewPage = () => {
 
   const fetchAllEmployees = async () => {
     try {
-      const res = await api.get('/api/users');
+      const res = await api.get('/users');  // ✅
       const employees = res.data
         .filter(u => u.role !== 'hr')
         .map(emp => ({
@@ -52,7 +52,7 @@ const VisaReviewPage = () => {
 
   const handleApprove = async (docId) => {
     try {
-      await api.post(`/api/documents/approve/${docId}`);
+      await api.post(`/documents/approve/${docId}`);
       message.success('Document approved!');
       loadData();
     } catch (err) {
@@ -63,9 +63,9 @@ const VisaReviewPage = () => {
 
   const handleReject = async (docId) => {
     const feedback = prompt('Please enter rejection feedback:');
-    if (!feedback) return; // 用户取消了
+    if (!feedback) return;
     try {
-      await api.post(`/api/documents/reject/${docId}`, { feedback });
+      await api.post(`/documents/reject/${docId}`, { feedback });
       message.success('Document rejected!');
       loadData();
     } catch (err) {
@@ -76,7 +76,7 @@ const VisaReviewPage = () => {
 
   const handleSendReminder = async (userId) => {
     try {
-      await api.post(`/api/notifications/send-reminder/${userId}`);
+      await api.post(`/notifications/send-reminder/${userId}`);
       message.success('Reminder sent!');
     } catch (err) {
       console.error(err);
@@ -183,34 +183,43 @@ const VisaReviewPage = () => {
     <div style={{ padding: 24 }}>
       <h1>Visa Status Management</h1>
 
-      <Tabs defaultActiveKey="inprogress">
-        <Tabs.TabPane tab="In Progress" key="inprogress">
-          <Table
-            columns={columnsInProgress}
-            dataSource={inProgressData}
-            rowKey={record => record.documentId || record.userId}
-            pagination={{ pageSize: 6 }}
-          />
-        </Tabs.TabPane>
-
-        <Tabs.TabPane tab="all" key="all">
-          <div style={{ marginBottom: 16 }}>
-            <Search
-              placeholder="Search employees"
-              allowClear
-              onChange={handleSearchChange}
-              value={searchText}
-              style={{ width: 300 }}
+      <Tabs defaultActiveKey="inprogress" items={[
+        {
+          label: 'In Progress',
+          key: 'inprogress',
+          children: (
+            <Table
+              columns={columnsInProgress}
+              dataSource={inProgressData}
+              rowKey={record => record.documentId || record.userId}
+              pagination={{ pageSize: 6 }}
             />
-          </div>
-          <Table
-            columns={columnsAll}
-            dataSource={filteredEmployees}
-            rowKey={record => record._id}
-            pagination={{ pageSize: 8 }}
-          />
-        </Tabs.TabPane>
-      </Tabs>
+          ),
+        },
+        {
+          label: 'All Employees',
+          key: 'all',
+          children: (
+            <>
+              <div style={{ marginBottom: 16 }}>
+                <Search
+                  placeholder="Search employees"
+                  allowClear
+                  onChange={handleSearchChange}
+                  value={searchText}
+                  style={{ width: 300 }}
+                />
+              </div>
+              <Table
+                columns={columnsAll}
+                dataSource={filteredEmployees}
+                rowKey={record => record._id}
+                pagination={{ pageSize: 8 }}
+              />
+            </>
+          ),
+        }
+      ]} />
     </div>
   );
 };

@@ -28,15 +28,21 @@ const LoginPage = () => {
       showLoading('Logging in...');
       const res = await api.post('/auth/login', values);
       const { user, accessToken } = res.data;
-
-      // 保存用户到redux
+  
       dispatch(loginSuccess({ user, token: accessToken }));
+  
+      // ✅ 登录成功后同时保存token和user到localStorage
       localStorage.setItem('token', accessToken);
-
+      localStorage.setItem('user', JSON.stringify(user));
+  
       showSuccess('Login successful!');
-
-      // 登录成功后根据 role 判断跳转
-      if (user?.role === 'hr') {
+  
+      const params = new URLSearchParams(location.search);
+      const redirectParam = params.get('redirect');
+  
+      if (redirectParam) {
+        navigate(redirectParam);
+      } else if (user?.role === 'hr') {
         navigate('/hr/dashboard');
       } else {
         navigate('/profile');
@@ -48,7 +54,7 @@ const LoginPage = () => {
       hideLoading();
     }
   };
-
+  
   return (
     <div style={{ display: 'flex', height: '100vh', justifyContent: 'center', alignItems: 'center' }}>
       <Card title="Login" style={{ width: 400 }}>

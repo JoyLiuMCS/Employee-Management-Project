@@ -6,10 +6,19 @@ const api = axios.create({
   withCredentials: true,
 });
 
+// ⭐加上请求拦截器，自动带上 Authorization
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;  // ⭐必须加
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
 
-// 请求拦截器可以加token（如果需要）
-// api.interceptors.request.use(config => {...});
-
+// 保持你原来写的response拦截器
 api.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -17,7 +26,8 @@ api.interceptors.response.use(
       showError('Session expired, please login again.');
       setTimeout(() => {
         localStorage.removeItem('token');
-        window.location.href = '/login'; // 直接跳登录
+        localStorage.removeItem('user');  // ⭐顺手也清掉user
+        window.location.href = '/login';
       }, 1000);
     }
     return Promise.reject(error);
