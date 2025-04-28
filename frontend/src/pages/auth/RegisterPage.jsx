@@ -1,20 +1,24 @@
-import { Form, Input, Button, Card, message } from 'antd';
+import { Form, Input, Button, Card } from 'antd';
 import { useNavigate, useParams } from 'react-router-dom';
 import api from '../../utils/api';
+import { showLoading, showSuccess, showError, hideLoading } from '../../utils/message';  // ⭐️ 引入统一message工具
 
 const RegisterPage = () => {
   const [form] = Form.useForm();
   const navigate = useNavigate();
-  const { token } = useParams();  // 从 URL 拿注册 token
+  const { token } = useParams();
 
   const onFinish = async (values) => {
     try {
+      showLoading('Registering...');
       const res = await api.post(`/api/auth/register/${token}`, values);
-      message.success('Registration successful! Please login.');
-      navigate('/'); // 注册成功后跳回登录页
+      showSuccess('Registration successful! Please login.');
+      navigate('/login'); // 修改跳回到 /login
     } catch (err) {
       console.error(err);
-      message.error('Registration failed. Please check your input.');
+      showError('Registration failed. Please check your input.');
+    } finally {
+      hideLoading();
     }
   };
 

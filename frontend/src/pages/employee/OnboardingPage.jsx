@@ -9,6 +9,8 @@ import VisaInfoForm from './onboarding/VisaInfoForm';
 import EmergencyContactForm from './onboarding/EmergencyContactForm';
 import UploadDocumentsForm from './onboarding/UploadDocumentsForm';
 import api from '../../utils/api';
+import { showLoading, showSuccess, showError, hideLoading } from '../../utils/message';
+
 
 
 
@@ -22,7 +24,7 @@ const OnboardingPage = () => {
     if (!auth.token) {
       setTimeout(() => {
         navigate('/login?redirect=onboarding');
-      }, 300); 
+      }, 100); 
     }
   }, [auth.token, navigate]);
   
@@ -30,6 +32,7 @@ const OnboardingPage = () => {
   const onFinish = async (values) => {
     try {
       setLoading(true);  // ⭐️ 开启 loading
+      showLoading('Submitting your onboarding form...');
   
       const formData = new FormData();
   
@@ -58,8 +61,6 @@ const OnboardingPage = () => {
         formData.append('emergencyContacts', JSON.stringify(values.emergencyContacts));
       }
   
-      message.loading({ content: 'Submitting your onboarding form...', key: 'submit' });
-  
       // 发 POST 请求
       const res = await api.post('/api/onboarding/submit', formData, {
         headers: {
@@ -67,16 +68,17 @@ const OnboardingPage = () => {
         },
       });
   
-      message.success({ content: 'Submitted successfully!', key: 'submit', duration: 2 });
+      showSuccess('Submitted successfully!');
       console.log('✅ Server Response:', res.data);
   
       // 提交成功后（可选跳转 Profile，已经在之前讲过了）
       // navigate('/profile');
     } catch (err) {
       console.error('❌ Error submitting onboarding form:', err);
-      message.error({ content: 'Submission failed, please try again.', key: 'submit', duration: 3 });
+      showError('Submission failed, please try again.');
     } finally {
       setLoading(false);  // ⭐️ 关闭 loading
+      hideLoading();  // ⭐️ 关闭全局 loading
     }
   };
   
