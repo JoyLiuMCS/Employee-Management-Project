@@ -27,7 +27,7 @@ const LoginPage = () => {
     try {
       showLoading('Logging in...');
       const res = await api.post('/auth/login', values);
-      const { user, accessToken } = res.data;  // ✅改这里
+      const { user, accessToken } = res.data;
 
       // 保存用户到redux
       dispatch(loginSuccess({ user, token: accessToken }));
@@ -36,7 +36,7 @@ const LoginPage = () => {
       showSuccess('Login successful!');
 
       // 登录成功后根据 role 判断跳转
-      if (user.role === 'hr') {
+      if (user?.role === 'hr') {
         navigate('/hr/dashboard');
       } else {
         navigate('/profile');
