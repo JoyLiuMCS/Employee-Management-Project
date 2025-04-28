@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';  // ⭐️ 加了 useNavigate
 import { useSelector } from 'react-redux'; 
 import { useEffect, useState } from 'react';
 import api from '../../utils/api'; 
+import { showLoading, showSuccess, showError, hideLoading } from '../../utils/message';
 
 
 const { Title, Text } = Typography;
@@ -18,7 +19,7 @@ const ProfilePage = () => {
     if (!auth.token) {
       setTimeout(() => {
         navigate('/login?redirect=onboarding');
-      }, 300); // 小小加快跳转
+      }, 100); // 小小加快跳转
     }
   }, [auth.token, navigate]);
   
@@ -51,21 +52,21 @@ const ProfilePage = () => {
   const handleSave = async (values) => {
     try {
       setLoading(true);
-  
+      showLoading('Saving your profile...');
       // 发 PATCH 请求到后端
       const res = await api.patch('/api/user/update', values);
-  
       console.log('✅ Server Response:', res.data);
   
       setUser(values); // 更新本地展示
       setIsEditing(false);
   
-      message.success('Profile updated successfully!');
+      showSuccess('Profile updated successfully!');
     } catch (error) {
       console.error('❌ Error saving profile:', error);
-      message.error('Failed to update profile.');
+      showError('Failed to update profile.');
     } finally {
       setLoading(false);
+      hideLoading();
     }
   };
   
@@ -81,7 +82,6 @@ const ProfilePage = () => {
             </Button>
           )
         }
-        bordered={false}
       >
         <Space direction="vertical" size="middle" style={{ width: '100%' }}>
           {isEditing ? (
