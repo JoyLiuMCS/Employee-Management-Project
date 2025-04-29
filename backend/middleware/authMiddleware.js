@@ -7,8 +7,8 @@ const authMiddleware = (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded; // 保存userId, role信息
-    if (!req.user.role) { // Add this validation
+    req.user = decoded; 
+    if (!req.user.role) { 
         return res.status(400).json({ success: false, message: 'Malformed token: missing role' });};
     next();
   } catch (err) {

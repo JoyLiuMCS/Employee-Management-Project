@@ -2,7 +2,6 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
-// 生成 AccessToken
 const generateAccessToken = (user) => {
   return jwt.sign(
     { userId: user._id, role: user.role },
@@ -11,7 +10,6 @@ const generateAccessToken = (user) => {
   );
 };
 
-// 生成 RefreshToken
 const generateRefreshToken = (user) => {
   return jwt.sign(
     { userId: user._id },
@@ -21,7 +19,6 @@ const generateRefreshToken = (user) => {
 };
 
 const authController = {
-  // ✅ HR后台直接添加用户（或旧版注册）
   async register(req, res, next) {
     try {
       const { name, email, password, role } = req.body;
@@ -40,7 +37,6 @@ const authController = {
     }
   },
 
-  // ✅ 员工通过注册链接注册
   async registerWithToken(req, res, next) {
     try {
       const { token } = req.params;
@@ -63,8 +59,8 @@ const authController = {
       }
 
       const newUser = new User({
-        name: username,  // ✅ 这里是注册表单里填的名字
-        email,           // ✅ 这里是token里的email
+        name: username,  
+        email,           
         password,
         role: 'employee',
       });
@@ -77,7 +73,6 @@ const authController = {
     }
   },
 
-  // ✅ 登录
   async login(req, res, next) {
     try {
       const { email, password } = req.body;
@@ -101,7 +96,6 @@ const authController = {
     }
   },
 
-  // ✅ 刷新Token
   async refresh(req, res, next) {
     try {
       const { refreshToken } = req.body;
