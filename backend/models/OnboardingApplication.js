@@ -2,7 +2,6 @@ const mongoose = require('mongoose');
 
 const onboardingSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  email: { type: String }, // ✅ 新增：记录注册邮箱
   visaType: { type: String },
   workAuthorizationStart: { type: Date },
   workAuthorizationEnd: { type: Date },
@@ -12,6 +11,12 @@ const onboardingSchema = new mongoose.Schema({
   i20: { type: Boolean },
   status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
   rejectionReason: { type: String },
+  documents: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Document',  // ⭐️关联到Document model
+    }
+  ],
   createdAt: { type: Date, default: Date.now }
 });
 

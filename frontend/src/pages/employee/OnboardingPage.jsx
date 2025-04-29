@@ -31,7 +31,7 @@ const OnboardingPage = () => {
 
   const onFinish = async (values) => {
     try {
-      setLoading(true);  // ⭐️ 开启 loading
+      setLoading(true);
       showLoading('Submitting your onboarding form...');
   
       const formData = new FormData();
@@ -56,27 +56,49 @@ const OnboardingPage = () => {
       if (values.workAuthorization?.originFileObj) {
         formData.append('workAuthorization', values.workAuthorization.originFileObj);
       }
-  
       if (values.emergencyContacts) {
         formData.append('emergencyContacts', JSON.stringify(values.emergencyContacts));
       }
   
-      // 发 POST 请求
-      const res = await api.post('/onboarding/submit', formData);
+      // 🔥 第一步：提交 OnboardingApplication
+      await api.post('/onboarding/submit', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+  
+      // 🔥 第二步：同步更新 User表
+      await api.patch(`/users/${auth.user.id}`, {
+        firstName: values.firstName,
+        lastName: values.lastName,
+        middleName: values.middleName,
+        preferredName: values.preferredName,
+        dateOfBirth: values.dateOfBirth,
+        gender: values.gender,
+        ssn: values.ssn,
+        phoneNumber: values.phoneNumber,
+        workPhone: values.workPhone,
+        address: values.address,
+        citizenshipStatus: values.citizenshipStatus,
+        visaTitle: values.visaTitle,
+        visaStartDate: values.workAuthorizationStart,
+        visaEndDate: values.workAuthorizationEnd,
+        otherVisaTitle: values.otherVisaTitle,
+        emergencyContacts: values.emergencyContacts,
+      });
   
       showSuccess('Submitted successfully!');
-      console.log('✅ Server Response:', res.data);
+      console.log('✅ Server Response: Onboarding and Profile updated.');
   
-      // 提交成功后（可选跳转 Profile，已经在之前讲过了）
+      // 🔥 第三步：跳转到 Profile页面
       navigate('/profile');
     } catch (err) {
       console.error('❌ Error submitting onboarding form:', err);
       showError('Submission failed, please try again.');
     } finally {
-      setLoading(false);  // ⭐️ 关闭 loading
-      hideLoading();  // ⭐️ 关闭全局 loading
+      setLoading(false);
+      hideLoading();
     }
   };
+  
   
 
   return (
