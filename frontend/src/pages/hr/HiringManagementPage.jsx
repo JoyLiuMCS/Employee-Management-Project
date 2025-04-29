@@ -27,11 +27,15 @@ const HiringManagementPage = () => {
 
   const fetchApplications = async () => {
     try {
-      const res = await api.get('/api/applications');
-      const pending = res.data.filter(app => app.status === 'pending');
-      const approved = res.data.filter(app => app.status === 'approved');
-      const rejected = res.data.filter(app => app.status === 'rejected');
-      setApplications({ pending, approved, rejected });
+        const res = await api.get('/api/applications');
+        const applications = res.data.applications; // ⭐拿到数组
+        
+        const pending = applications.filter(app => app.status === 'pending');
+        const approved = applications.filter(app => app.status === 'approved');
+        const rejected = applications.filter(app => app.status === 'rejected');
+        
+        setApplications({ pending, approved, rejected });
+        
     } catch (err) {
       console.error(err);
       message.error('Failed to load applications');
