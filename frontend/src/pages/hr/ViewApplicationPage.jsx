@@ -11,7 +11,7 @@ const ViewApplicationPage = () => {
   useEffect(() => {
     const fetchApplication = async () => {
       try {
-        const res = await api.get(`/api/applications/${id}`);
+        const res = await api.get(`/applications/${id}`);
         setApp(res.data);
       } catch (err) {
         console.error(err);
