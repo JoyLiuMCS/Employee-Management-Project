@@ -1,6 +1,8 @@
+// backend/controllers/emailController.js
+
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
-const EmailHistory = require('../models/EmailHistory'); // ⭐️ 需要新建 EmailHistory model
+const EmailHistory = require('../models/EmailHistory');
 require('dotenv').config();
 
 const sendRegistrationEmail = async (req, res, next) => {
@@ -10,13 +12,14 @@ const sendRegistrationEmail = async (req, res, next) => {
       return res.status(400).json({ message: 'Email is required' });
     }
 
-    // 生成注册 token，设置3小时过期
+    // 生成注册token，3小时有效
     const registrationToken = jwt.sign({ email }, process.env.JWT_SECRET, { expiresIn: '3h' });
 
-    // 构建注册链接
-    const registrationLink = `http://localhost:5173/register?token=${registrationToken}`;
+    // 🔥 根据环境动态生成注册链接
+    const frontendURL = process.env.FRONTEND_URL || 'http://localhost:5173';
+    const registrationLink = `${frontendURL}/register/${registrationToken}`;
 
-    // 配置 nodemailer
+    // 配置nodemailer
     const transporter = nodemailer.createTransport({
       service: 'Gmail',
       auth: {
@@ -33,10 +36,10 @@ const sendRegistrationEmail = async (req, res, next) => {
       html: `<p>Please click <a href="${registrationLink}">here</a> to complete your registration. Link expires in 3 hours.</p>`,
     });
 
-    // ⭐️ 保存发送记录
+    // 保存发送记录
     await EmailHistory.create({
       email,
-      name: name || '',  // 有名字就记录，没有也不报错
+      name: name || '',
       token: registrationToken,
       status: 'pending',
     });
@@ -48,7 +51,7 @@ const sendRegistrationEmail = async (req, res, next) => {
   }
 };
 
-// 新增的接口：查看发过的邮件记录
+// 查看邮件发送历史
 const getEmailHistory = async (req, res) => {
   try {
     const history = await EmailHistory.find().sort({ createdAt: -1 });
