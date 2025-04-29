@@ -47,6 +47,10 @@ const AppRoutes = () => {
       <Route path="/hr/visa-review" element={
         <ProtectedRoute><VisaReviewPage /></ProtectedRoute>
       } />
+      <Route path="/view-application/:id" element={
+  <ProtectedRoute requireHR><ViewApplicationPage /></ProtectedRoute>
+} />
+
     </Routes>
   );
 };
