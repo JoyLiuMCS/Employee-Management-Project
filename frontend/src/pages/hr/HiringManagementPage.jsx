@@ -1,65 +1,60 @@
+// src/pages/hr/HiringManagementPage.jsx
 import { useEffect, useState } from 'react';
 import { Tabs, Table, Button, Input, message, Modal } from 'antd';
 import api from '../../utils/api';
 
 const { Search } = Input;
-const { TabPane } = Tabs;
 
 const HiringManagementPage = () => {
-  const [tokens, setTokens] = useState([]);
-  const [applications, setApplications] = useState({
-    pending: [],
-    approved: [],
-    rejected: [],
-  });
+  const [email, setEmail] = useState('');
+  const [history, setHistory] = useState([]);
+  const [applications, setApplications] = useState({ pending: [], approved: [], rejected: [] });
   const [searchText, setSearchText] = useState('');
 
   useEffect(() => {
-    loadTokens();
-    loadApplications();
+    loadAll();
   }, []);
 
-  const loadTokens = async () => {
-    try {
-      const res = await api.get('/api/register-tokens');
-      setTokens(res.data);
-    } catch (err) {
-      console.error('Failed to fetch tokens', err);
-    }
+  const loadAll = async () => {
+    fetchEmailHistory();
+    fetchApplications();
   };
 
-  const loadApplications = async () => {
-    try {
-      const pending = await api.get('/api/onboarding-applications?status=pending');
-      const approved = await api.get('/api/onboarding-applications?status=approved');
-      const rejected = await api.get('/api/onboarding-applications?status=rejected');
-
-      setApplications({
-        pending: pending.data,
-        approved: approved.data,
-        rejected: rejected.data,
-      });
-    } catch (err) {
-      console.error('Failed to fetch applications', err);
-    }
+  const fetchEmailHistory = async () => {
+    // TODO: 你需要写一个 API 拿发过token的历史（现在先假设空）
+    setHistory([]);
   };
 
-  const handleGenerateToken = async (email) => {
+  const fetchApplications = async () => {
     try {
-      await api.post('/api/register-token', { email });
-      message.success('Token generated and email sent!');
-      loadTokens();
+      const res = await api.get('/api/applications');
+      const pending = res.data.filter(app => app.status === 'pending');
+      const approved = res.data.filter(app => app.status === 'approved');
+      const rejected = res.data.filter(app => app.status === 'rejected');
+      setApplications({ pending, approved, rejected });
     } catch (err) {
       console.error(err);
-      message.error('Failed to generate token');
+      message.error('Failed to load applications');
+    }
+  };
+
+  const sendRegistrationEmail = async () => {
+    try {
+      await api.post('/api/email/send-registration-email', { email });
+      message.success('Registration email sent!');
+      setEmail('');
+      fetchEmailHistory();
+    } catch (err) {
+      console.error(err);
+      message.error('Failed to send email');
     }
   };
 
   const handleApprove = async (id) => {
     try {
-      await api.post(`/api/onboarding-applications/${id}/approve`);
-      message.success('Application approved');
-      loadApplications();
+      await api.post(`/api/applications/${id}/approve`);
+      message.success('Application approved!');
+      fetchApplications();
     } catch (err) {
       console.error(err);
       message.error('Failed to approve');
@@ -70,18 +65,18 @@ const HiringManagementPage = () => {
     Modal.confirm({
       title: 'Reject Application',
       content: (
-        <Input.TextArea rows={4} placeholder="Enter rejection feedback" id="feedback" />
+        <Input.TextArea rows={3} placeholder="Enter rejection reason" id="rejectReason" />
       ),
       onOk: async () => {
-        const feedback = document.getElementById('feedback').value;
-        if (!feedback) {
-          message.error('Feedback is required');
-          throw new Error('No feedback');
+        const reason = document.getElementById('rejectReason').value;
+        if (!reason) {
+          message.error('Rejection reason is required!');
+          return Promise.reject();
         }
         try {
-          await api.post(`/api/onboarding-applications/${id}/reject`, { feedback });
-          message.success('Application rejected');
-          loadApplications();
+          await api.post(`/api/applications/${id}/reject`, { rejectionReason: reason });
+          message.success('Application rejected!');
+          fetchApplications();
         } catch (err) {
           console.error(err);
           message.error('Failed to reject');
@@ -90,33 +85,27 @@ const HiringManagementPage = () => {
     });
   };
 
-  const columnsTokens = [
-    { title: 'Email', dataIndex: 'email' },
-    { title: 'Name', dataIndex: 'name' },
-    { title: 'Link', dataIndex: 'link', render: link => <a href={link} target="_blank" rel="noopener noreferrer">{link}</a> },
-    { title: 'Submitted', dataIndex: 'submitted', render: submitted => (submitted ? '✅' : '❌') },
-  ];
-
-  const columnsApplications = (showActions) => [
-    { title: 'Name', dataIndex: 'fullName' },
-    { title: 'Email', dataIndex: 'email' },
+  const columnsApplications = [
+    {
+      title: 'Name',
+      render: (_, record) => `${record.fullName}`,
+    },
+    {
+      title: 'Email',
+      dataIndex: 'email',
+    },
     {
       title: 'Action',
       render: (_, record) => (
-        showActions ? (
-          <>
-            <Button type="primary" onClick={() => handleApprove(record._id)} style={{ marginRight: 8 }}>
-              Approve
-            </Button>
-            <Button danger onClick={() => handleReject(record._id)}>
-              Reject
-            </Button>
-          </>
-        ) : (
-          <Button type="link" href={`/view-application/${record._id}`} target="_blank">
-            View Application
-          </Button>
-        )
+        <>
+          {record.status === 'pending' && (
+            <>
+              <Button type="primary" style={{ marginRight: 8 }} onClick={() => handleApprove(record._id)}>Approve</Button>
+              <Button danger onClick={() => handleReject(record._id)}>Reject</Button>
+            </>
+          )}
+          <Button type="link" href={`/view-application/${record._id}`} target="_blank">View Application</Button>
+        </>
       ),
     },
   ];
@@ -124,53 +113,48 @@ const HiringManagementPage = () => {
   return (
     <div style={{ padding: 24 }}>
       <h1>Hiring Management</h1>
-
       <Tabs defaultActiveKey="registration">
-        <TabPane tab="Registration Tokens" key="registration">
-          <div style={{ marginBottom: 16 }}>
-            <Search
-              placeholder="Enter employee email to send token"
-              enterButton="Send Token"
-              onSearch={handleGenerateToken}
-              allowClear
-            />
-          </div>
-          <Table
-            columns={columnsTokens}
-            dataSource={tokens}
-            rowKey="_id"
-            pagination={{ pageSize: 6 }}
+        <Tabs.TabPane tab="Registration Tokens" key="registration">
+          <Input
+            placeholder="Enter new employee email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            style={{ width: 300, marginRight: 8 }}
           />
-        </TabPane>
+          <Button type="primary" onClick={sendRegistrationEmail}>Generate Token and Send Email</Button>
 
-        <TabPane tab="Onboarding Applications" key="applications">
-          <Tabs type="card">
-            <TabPane tab="Pending" key="pending">
+          <h3 style={{ marginTop: 24 }}>History (TODO)</h3>
+          {/* TODO: 这里以后展示历史列表 */}
+        </Tabs.TabPane>
+
+        <Tabs.TabPane tab="Onboarding Applications" key="applications">
+          <Tabs defaultActiveKey="pending">
+            <Tabs.TabPane tab="Pending" key="pending">
               <Table
-                columns={columnsApplications(true)}
+                columns={columnsApplications}
                 dataSource={applications.pending}
                 rowKey="_id"
-                pagination={{ pageSize: 6 }}
+                pagination={{ pageSize: 5 }}
               />
-            </TabPane>
-            <TabPane tab="Approved" key="approved">
+            </Tabs.TabPane>
+            <Tabs.TabPane tab="Approved" key="approved">
               <Table
-                columns={columnsApplications(false)}
+                columns={columnsApplications}
                 dataSource={applications.approved}
                 rowKey="_id"
-                pagination={{ pageSize: 6 }}
+                pagination={{ pageSize: 5 }}
               />
-            </TabPane>
-            <TabPane tab="Rejected" key="rejected">
+            </Tabs.TabPane>
+            <Tabs.TabPane tab="Rejected" key="rejected">
               <Table
-                columns={columnsApplications(false)}
+                columns={columnsApplications}
                 dataSource={applications.rejected}
                 rowKey="_id"
-                pagination={{ pageSize: 6 }}
+                pagination={{ pageSize: 5 }}
               />
-            </TabPane>
+            </Tabs.TabPane>
           </Tabs>
-        </TabPane>
+        </Tabs.TabPane>
       </Tabs>
     </div>
   );
