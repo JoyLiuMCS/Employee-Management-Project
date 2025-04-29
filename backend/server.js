@@ -27,6 +27,8 @@ app.use('/uploads', express.static('uploads'));
 console.log('Mounting application routes at /api/...');
 
 app.use('/api/applications', applicationRoutes);
+app.use('/api/submitApp', appRoutes);
+
 app.use('/api/users', userRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/documents', docRoutes);

@@ -2,9 +2,9 @@
 const nodemailer = require('nodemailer');
 
 const transporter = nodemailer.createTransport({
-  service: 'Gmail',  // 也可以换成其他，比如Outlook
+  service: 'Gmail',  
   auth: {
-    user: process.env.EMAIL_USER, // 你需要在.env里设置
+    user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
 });

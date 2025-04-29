@@ -2,7 +2,6 @@
 const OnboardingApplication = require('../models/OnboardingApplication');
 const User = require('../models/User');
 const { sendEmail } = require('../utils/emailService');
-
 const getAllApplications = async (req, res, next) => {
   try {
     const allApplications = await OnboardingApplication.find().populate('userId', 'name email');
@@ -46,7 +45,6 @@ const approveApplication = async (req, res, next) => {
     await application.save();
 
     await sendEmail(application.userId.email, 'Application Approved', 'Your application has been approved.');
-
     res.status(200).json({ message: 'Application approved' });
   } catch (err) {
     next(err);
@@ -69,7 +67,6 @@ const rejectApplication = async (req, res, next) => {
     await application.save();
 
     await sendEmail(application.userId.email, 'Application Rejected', `Your application was rejected. Reason: ${rejectionReason}`);
-
     res.status(200).json({ message: 'Application rejected' });
   } catch (err) {
     next(err);
