@@ -35,7 +35,7 @@ const uploadDocument = async (req, res, next) => {
 };
 
 // HR获取in-progress员工列表（签证状态管理）
-const getInProgressDocuments = async (req, res) => {
+const getInProgressDocuments = async (req, res, next) => {
   try {
     const employees = await User.find({ role: 'employee' });
     const documents = await Document.find();
@@ -74,12 +74,13 @@ const getInProgressDocuments = async (req, res) => {
 
     res.json(inProgressList);
   } catch (err) {
-    res.status(500).json({ success: false, message: 'Server error', error: err.message });
+    next(err);
+    //res.status(500).json({ success: false, message: 'Server error', error: err.message });
   }
 };
 
 // HR批准文档
-const approveDocument = async (req, res) => {
+const approveDocument = async (req, res, next) => {
   try {
     const docId = req.params.id;
     const doc = await Document.findById(docId);
@@ -91,12 +92,13 @@ const approveDocument = async (req, res) => {
 
     res.json({ success: true, message: 'Document approved' });
   } catch (err) {
-    res.status(500).json({ success: false, message: 'Server error', error: err.message });
+    next(err);
+    //res.status(500).json({ success: false, message: 'Server error', error: err.message });
   }
 };
 
 // HR拒绝文档 + 给反馈
-const rejectDocument = async (req, res) => {
+const rejectDocument = async (req, res, next) => {
   try {
     const docId = req.params.id;
     const { feedback } = req.body;
@@ -110,7 +112,8 @@ const rejectDocument = async (req, res) => {
 
     res.json({ success: true, message: 'Document rejected with feedback' });
   } catch (err) {
-    res.status(500).json({ success: false, message: 'Server error', error: err.message });
+    next(err);
+    //res.status(500).json({ success: false, message: 'Server error', error: err.message });
   }
 };
 
