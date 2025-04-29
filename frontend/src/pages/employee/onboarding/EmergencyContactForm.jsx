@@ -10,8 +10,7 @@ const EmergencyContactForm = () => {
         {(fields, { add, remove }) => (
           <>
             {fields.map(({ key, name, ...restField }) => (
-              <Space key={key} style={{ display: 'flex', marginBottom: 8 }} align="start">
-                
+              <Space key={key} style={{ display: 'flex', marginBottom: 8 }} align="start" wrap>
                 <Form.Item
                   {...restField}
                   name={[name, 'firstName']}
@@ -39,7 +38,10 @@ const EmergencyContactForm = () => {
                 <Form.Item
                   {...restField}
                   name={[name, 'phone']}
-                  rules={[{ required: true, message: 'Phone required' }]}
+                  rules={[
+                    { required: true, message: 'Phone required' },
+                    { pattern: /^[0-9]{10,15}$/, message: 'Enter a valid phone number' }
+                  ]}
                 >
                   <Input placeholder="Phone" />
                 </Form.Item>
@@ -48,8 +50,8 @@ const EmergencyContactForm = () => {
                   {...restField}
                   name={[name, 'email']}
                   rules={[
-                    { type: 'email', message: 'Invalid email' },
-                    { required: true, message: 'Email required' }
+                    { required: true, message: 'Email required' },
+                    { type: 'email', message: 'Invalid email address' }
                   ]}
                 >
                   <Input placeholder="Email" />

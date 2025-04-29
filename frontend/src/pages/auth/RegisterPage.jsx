@@ -11,7 +11,7 @@ const RegisterPage = () => {
   const onFinish = async (values) => {
     try {
       showLoading('Registering...');
-      const res = await api.post(`/api/auth/register/${token}`, values);
+      const res = await api.post(`/auth/register/${token}`, values);
       showSuccess('Registration successful! Please login.');
       navigate('/login'); // 修改跳回到 /login
     } catch (err) {

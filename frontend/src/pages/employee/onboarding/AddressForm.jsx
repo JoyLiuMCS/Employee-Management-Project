@@ -1,4 +1,7 @@
-import { Form, Input } from 'antd';
+import { Form, Input, Select } from 'antd';
+
+const CITIES = ['New York', 'San Francisco', 'Los Angeles', 'Austin', 'Seattle'];
+const STATES = ['NY', 'CA', 'TX', 'WA', 'FL'];
 
 const AddressForm = () => {
   return (
@@ -7,7 +10,7 @@ const AddressForm = () => {
 
       <Form.Item
         label="Building/Apt #"
-        name="building"
+        name={['address', 'building']}
         rules={[{ required: true, message: 'Building or Apartment number is required' }]}
       >
         <Input />
@@ -15,7 +18,7 @@ const AddressForm = () => {
 
       <Form.Item
         label="Street Name"
-        name="street"
+        name={['address', 'street']}
         rules={[{ required: true, message: 'Street Name is required' }]}
       >
         <Input />
@@ -23,26 +26,37 @@ const AddressForm = () => {
 
       <Form.Item
         label="City"
-        name="city"
+        name={['address', 'city']}
         rules={[{ required: true, message: 'City is required' }]}
       >
-        <Input />
+        <Select
+          options={CITIES.map(city => ({ label: city, value: city }))}
+          showSearch
+          placeholder="Select a city"
+        />
       </Form.Item>
 
       <Form.Item
         label="State"
-        name="state"
+        name={['address', 'state']}
         rules={[{ required: true, message: 'State is required' }]}
       >
-        <Input />
+        <Select
+          options={STATES.map(state => ({ label: state, value: state }))}
+          showSearch
+          placeholder="Select a state"
+        />
       </Form.Item>
 
       <Form.Item
         label="ZIP Code"
-        name="zip"
-        rules={[{ required: true, message: 'ZIP Code is required' }]}
+        name={['address', 'zip']}
+        rules={[
+          { required: true, message: 'ZIP Code is required' },
+          { pattern: /^\d{5}$/, message: 'ZIP must be exactly 5 digits' }
+        ]}
       >
-        <Input />
+        <Input maxLength={5} />
       </Form.Item>
     </>
   );

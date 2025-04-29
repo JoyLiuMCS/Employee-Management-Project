@@ -7,10 +7,10 @@ const ContactInfoForm = () => {
 
       <Form.Item
         label="Cell Phone Number"
-        name="cellPhone"
+        name="phoneNumber"
         rules={[
           { required: true, message: 'Cell phone number is required' },
-          { pattern: /^[0-9]{10,15}$/, message: 'Enter a valid phone number' }
+          { pattern: /^[0-9]{10,15}$/, message: 'Enter a valid phone number (10-15 digits)' }
         ]}
       >
         <Input placeholder="e.g., 1234567890" />
@@ -19,6 +19,9 @@ const ContactInfoForm = () => {
       <Form.Item
         label="Work Phone Number"
         name="workPhone"
+        rules={[
+          { pattern: /^[0-9]{0,15}$/, message: 'Work phone must be digits only' }
+        ]}
       >
         <Input placeholder="Optional" />
       </Form.Item>

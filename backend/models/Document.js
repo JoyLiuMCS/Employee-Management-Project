@@ -1,19 +1,24 @@
+// backend/models/Document.js
 const mongoose = require('mongoose');
 
 const documentSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User', // 🔥 关联到User模型
+    ref: 'User', // 关联到User
     required: true,
   },
   filename: {
     type: String,
     required: true,
   },
+  fileUrl: {
+    type: String,
+    required: true,
+  },
   status: {
     type: String,
     enum: ['pending', 'approved', 'rejected'],
-    default: 'pending', // 上传默认是pending
+    default: 'pending', // 上传后默认是pending
   },
   feedback: {
     type: String,
@@ -21,7 +26,7 @@ const documentSchema = new mongoose.Schema({
   },
   createdAt: {
     type: Date,
-    default: Date.now, // 自动记录上传时间
+    default: Date.now,
   },
 });
 
