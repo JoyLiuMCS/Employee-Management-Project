@@ -1,4 +1,3 @@
-// src/pages/hr/HiringManagementPage.jsx
 import { useEffect, useState } from 'react';
 import { Tabs, Table, Button, Input, message, Modal } from 'antd';
 import api from '../../utils/api';
@@ -9,33 +8,31 @@ const HiringManagementPage = () => {
   const [email, setEmail] = useState('');
   const [history, setHistory] = useState([]);
   const [applications, setApplications] = useState({ pending: [], approved: [], rejected: [] });
-  const [searchText, setSearchText] = useState('');
 
   useEffect(() => {
     loadAll();
   }, []);
 
   const loadAll = async () => {
-    fetchEmailHistory();
-    fetchApplications();
+    await fetchEmailHistory();
+    await fetchApplications();
   };
 
   const fetchEmailHistory = async () => {
-    // TODO: 你需要写一个 API 拿发过token的历史（现在先假设空）
+    // ✅ 如果你后端还没实现 history，可以保持为空
     setHistory([]);
   };
 
   const fetchApplications = async () => {
     try {
-        const res = await api.get('/api/applications');
-        const applications = res.data.applications; // ⭐拿到数组
-        
-        const pending = applications.filter(app => app.status === 'pending');
-        const approved = applications.filter(app => app.status === 'approved');
-        const rejected = applications.filter(app => app.status === 'rejected');
-        
-        setApplications({ pending, approved, rejected });
-        
+      const res = await api.get('/applications');  // ✅ baseURL 已包含 /api
+      const apps = res.data?.applications || [];
+
+      const pending = apps.filter(app => app.status === 'pending');
+      const approved = apps.filter(app => app.status === 'approved');
+      const rejected = apps.filter(app => app.status === 'rejected');
+
+      setApplications({ pending, approved, rejected });
     } catch (err) {
       console.error(err);
       message.error('Failed to load applications');
@@ -44,7 +41,7 @@ const HiringManagementPage = () => {
 
   const sendRegistrationEmail = async () => {
     try {
-      await api.post('/api/email/send-registration-email', { email });  // 注意加上 /api/email
+      await api.post('/email/send-registration-email', { email });
       message.success('Registration email sent!');
       setEmail('');
       fetchEmailHistory();
@@ -53,11 +50,10 @@ const HiringManagementPage = () => {
       message.error('Failed to send email');
     }
   };
-  
 
   const handleApprove = async (id) => {
     try {
-      await api.post(`/api/applications/${id}/approve`);
+      await api.post(`/applications/${id}/approve`);
       message.success('Application approved!');
       fetchApplications();
     } catch (err) {
@@ -79,7 +75,7 @@ const HiringManagementPage = () => {
           return Promise.reject();
         }
         try {
-          await api.post(`/api/applications/${id}/reject`, { rejectionReason: reason });
+          await api.post(`/applications/${id}/reject`, { reason }); // ✅ 参数名要和后端一致
           message.success('Application rejected!');
           fetchApplications();
         } catch (err) {
@@ -93,11 +89,11 @@ const HiringManagementPage = () => {
   const columnsApplications = [
     {
       title: 'Name',
-      render: (_, record) => `${record.fullName}`,
+      render: (_, record) => `${record.fullName || record.userId?.name || 'Unknown'}`,
     },
     {
       title: 'Email',
-      dataIndex: 'email',
+      render: (_, record) => record.email || record.userId?.email || 'N/A',
     },
     {
       title: 'Action',
@@ -105,11 +101,17 @@ const HiringManagementPage = () => {
         <>
           {record.status === 'pending' && (
             <>
-              <Button type="primary" style={{ marginRight: 8 }} onClick={() => handleApprove(record._id)}>Approve</Button>
-              <Button danger onClick={() => handleReject(record._id)}>Reject</Button>
+              <Button type="primary" onClick={() => handleApprove(record._id)} style={{ marginRight: 8 }}>
+                Approve
+              </Button>
+              <Button danger onClick={() => handleReject(record._id)}>
+                Reject
+              </Button>
             </>
           )}
-          <Button type="link" href={`/view-application/${record._id}`} target="_blank">View Application</Button>
+          <Button type="link" href={`/view-application/${record._id}`} target="_blank">
+            View Application
+          </Button>
         </>
       ),
     },
@@ -118,49 +120,68 @@ const HiringManagementPage = () => {
   return (
     <div style={{ padding: 24 }}>
       <h1>Hiring Management</h1>
-      <Tabs defaultActiveKey="registration">
-        <Tabs.TabPane tab="Registration Tokens" key="registration">
-          <Input
-            placeholder="Enter new employee email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            style={{ width: 300, marginRight: 8 }}
-          />
-          <Button type="primary" onClick={sendRegistrationEmail}>Generate Token and Send Email</Button>
-
-          <h3 style={{ marginTop: 24 }}>History (TODO)</h3>
-          {/* TODO: 这里以后展示历史列表 */}
-        </Tabs.TabPane>
-
-        <Tabs.TabPane tab="Onboarding Applications" key="applications">
-          <Tabs defaultActiveKey="pending">
-            <Tabs.TabPane tab="Pending" key="pending">
-              <Table
-                columns={columnsApplications}
-                dataSource={applications.pending}
-                rowKey="_id"
-                pagination={{ pageSize: 5 }}
+      <Tabs defaultActiveKey="registration" items={[
+        {
+          label: 'Registration Tokens',
+          key: 'registration',
+          children: (
+            <>
+              <Input
+                placeholder="Enter new employee email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                style={{ width: 300, marginRight: 8 }}
               />
-            </Tabs.TabPane>
-            <Tabs.TabPane tab="Approved" key="approved">
-              <Table
-                columns={columnsApplications}
-                dataSource={applications.approved}
-                rowKey="_id"
-                pagination={{ pageSize: 5 }}
-              />
-            </Tabs.TabPane>
-            <Tabs.TabPane tab="Rejected" key="rejected">
-              <Table
-                columns={columnsApplications}
-                dataSource={applications.rejected}
-                rowKey="_id"
-                pagination={{ pageSize: 5 }}
-              />
-            </Tabs.TabPane>
-          </Tabs>
-        </Tabs.TabPane>
-      </Tabs>
+              <Button type="primary" onClick={sendRegistrationEmail}>Generate Token and Send Email</Button>
+              <h3 style={{ marginTop: 24 }}>History (TODO)</h3>
+            </>
+          )
+        },
+        {
+          label: 'Onboarding Applications',
+          key: 'applications',
+          children: (
+            <Tabs defaultActiveKey="pending" items={[
+              {
+                label: 'Pending',
+                key: 'pending',
+                children: (
+                  <Table
+                    columns={columnsApplications}
+                    dataSource={applications.pending}
+                    rowKey="_id"
+                    pagination={{ pageSize: 5 }}
+                  />
+                )
+              },
+              {
+                label: 'Approved',
+                key: 'approved',
+                children: (
+                  <Table
+                    columns={columnsApplications}
+                    dataSource={applications.approved}
+                    rowKey="_id"
+                    pagination={{ pageSize: 5 }}
+                  />
+                )
+              },
+              {
+                label: 'Rejected',
+                key: 'rejected',
+                children: (
+                  <Table
+                    columns={columnsApplications}
+                    dataSource={applications.rejected}
+                    rowKey="_id"
+                    pagination={{ pageSize: 5 }}
+                  />
+                )
+              }
+            ]} />
+          )
+        }
+      ]} />
     </div>
   );
 };
