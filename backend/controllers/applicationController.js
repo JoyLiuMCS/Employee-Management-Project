@@ -1,29 +1,40 @@
 // controllers/applicationController.js
 const OnboardingApplication = require('../models/OnboardingApplication');
 const User = require('../models/User');
-const { sendEmail } = require('../utils/emailService');  // 下面我们也会写 emailService.js
+const { sendEmail } = require('../utils/emailService');
 
+// 查看所有申请
 const getAllApplications = async (req, res, next) => {
-    try {
-      const allApplications = await OnboardingApplication.find().populate('userId', 'name email');
-  
-      res.status(200).json({ success: true, applications: allApplications });
-    } catch (err) {
-        next(err);
-      //res.status(500).json({ success: false, message: err.message });
-    }
-  };
+  try {
+    const allApplications = await OnboardingApplication.find().populate('userId', 'name email');
+    res.status(200).json(allApplications);
+  } catch (err) {
+    next(err);
+  }
+};
 
+// 查看 pending 申请
 const getPendingApplications = async (req, res, next) => {
-    try {
-      const pendingApplications = await OnboardingApplication.find({ status: 'pending' }).populate('userId', 'name email');
-  
-      res.status(200).json({ success: true, applications: pendingApplications });
-    } catch (err) {
-        next(err);
-      //res.status(500).json({ success: false, message: err.message });
+  try {
+    const pendingApplications = await OnboardingApplication.find({ status: 'pending' }).populate('userId', 'name email');
+    res.status(200).json(pendingApplications);
+  } catch (err) {
+    next(err);
+  }
+};
+
+// 查看单个申请
+const getApplicationById = async (req, res, next) => {
+  try {
+    const application = await OnboardingApplication.findById(req.params.id).populate('userId', 'name email');
+    if (!application) {
+      return res.status(404).json({ message: 'Application not found' });
     }
-  };
+    res.status(200).json(application);
+  } catch (err) {
+    next(err);
+  }
+};
 
 // HR审批通过
 const approveApplication = async (req, res, next) => {
@@ -32,19 +43,17 @@ const approveApplication = async (req, res, next) => {
     const application = await OnboardingApplication.findById(appId).populate('userId');
 
     if (!application) {
-      return res.status(404).json({ success: false, message: 'Application not found' });
+      return res.status(404).json({ message: 'Application not found' });
     }
 
-    application.status = 'approved'; // 需要在model里加个status字段
+    application.status = 'approved';
     await application.save();
 
-    // 给用户发邮件通知
     await sendEmail(application.userId.email, 'Application Approved', 'Congratulations! Your application has been approved.');
 
-    res.status(200).json({ success: true, message: 'Application approved' });
+    res.status(200).json({ message: 'Application approved' });
   } catch (err) {
     next(err);
-    //res.status(500).json({ success: false, message: err.message });
   }
 };
 
@@ -52,26 +61,30 @@ const approveApplication = async (req, res, next) => {
 const rejectApplication = async (req, res, next) => {
   try {
     const appId = req.params.id;
-    const { reason } = req.body; // 拒绝理由
+    const { rejectionReason } = req.body; // 注意改名匹配前端
 
     const application = await OnboardingApplication.findById(appId).populate('userId');
 
     if (!application) {
-      return res.status(404).json({ success: false, message: 'Application not found' });
+      return res.status(404).json({ message: 'Application not found' });
     }
 
     application.status = 'rejected';
-    application.rejectionReason = reason;
+    application.rejectionReason = rejectionReason || 'No reason provided';
     await application.save();
 
-    // 给用户发邮件通知
-    await sendEmail(application.userId.email, 'Application Rejected', `Unfortunately, your application was rejected. Reason: ${reason}`);
+    await sendEmail(application.userId.email, 'Application Rejected', `Unfortunately, your application was rejected. Reason: ${rejectionReason}`);
 
-    res.status(200).json({ success: true, message: 'Application rejected' });
+    res.status(200).json({ message: 'Application rejected' });
   } catch (err) {
     next(err);
-    //res.status(500).json({ success: false, message: err.message });
   }
 };
 
-module.exports = { approveApplication, rejectApplication, getPendingApplications, getAllApplications };
+module.exports = {
+  getAllApplications,
+  getPendingApplications,
+  getApplicationById,
+  approveApplication,
+  rejectApplication
+};

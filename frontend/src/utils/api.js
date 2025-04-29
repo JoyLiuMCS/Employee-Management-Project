@@ -2,11 +2,11 @@ import axios from 'axios';
 import { message } from 'antd';
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000/api',
+  baseURL: import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000',
   withCredentials: true,
 });
 
-// 请求拦截器
+// ⭐请求拦截器：自动加 token
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
@@ -18,22 +18,20 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// 正在刷新的标志
+// ⭐ 刷新Token逻辑
 let isRefreshing = false;
 let refreshSubscribers = [];
 
-// 订阅新的请求
 function subscribeTokenRefresh(cb) {
   refreshSubscribers.push(cb);
 }
 
-// 刷新成功后重新执行之前失败的请求
 function onRefreshed(newToken) {
   refreshSubscribers.forEach(cb => cb(newToken));
   refreshSubscribers = [];
 }
 
-// 响应拦截器
+// ⭐响应拦截器
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -67,12 +65,11 @@ api.interceptors.response.use(
         const newAccessToken = res.data.accessToken;
         localStorage.setItem('token', newAccessToken);
 
-        // 更新原本的请求
         onRefreshed(newAccessToken);
         isRefreshing = false;
 
         originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
-        return api(originalRequest); // 重新发原来的请求
+        return api(originalRequest);
       } catch (refreshError) {
         console.error('Refresh token failed:', refreshError);
         isRefreshing = false;

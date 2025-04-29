@@ -11,7 +11,6 @@ router.get('/in-progress', authMiddleware, authorizeRoles('hr'), getInProgressDo
 router.post('/approve/:id', authMiddleware, authorizeRoles('hr'), approveDocument);
 router.post('/reject/:id', authMiddleware, authorizeRoles('hr'), rejectDocument);
 router.get('/my', authMiddleware, authorizeRoles('employee', 'hr'), getMyDocuments);
-
 router.get('/download/:filename', 
     authMiddleware, 
     downloadDocument);
