@@ -2,6 +2,7 @@ import { Menu, Layout } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../redux/slices/authSlice';
+import { message } from 'antd';
 
 const { Header } = Layout;
 
@@ -12,8 +13,11 @@ const Navbar = () => {
 
   const handleMenuClick = (e) => {
     if (e.key === 'logout') {
-      dispatch(logout());
+      // ✅ 正确清除localStorage
       localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      dispatch(logout());
+      message.success('Logged out successfully.');
       navigate('/login');
     } else {
       navigate(e.key);
@@ -48,7 +52,7 @@ const Navbar = () => {
           </>
         )}
 
-        {/* Logout 按钮（只要登录就显示） */}
+        {/* Logout 按钮 */}
         {token && <Menu.Item key="logout" danger>Logout</Menu.Item>}
       </Menu>
     </Header>

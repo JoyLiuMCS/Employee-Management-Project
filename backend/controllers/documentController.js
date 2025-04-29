@@ -1,9 +1,9 @@
-// controllers/documentController.js
 const Document = require('../models/Document');
 const User = require('../models/User');
 const path = require('path');
 const fs = require('fs');
 
+// 下载文件
 const downloadDocument = (req, res, next) => {
   const { filename } = req.params;
   const filePath = path.join(__dirname, '../uploads', filename);
@@ -21,20 +21,27 @@ const uploadDocument = async (req, res, next) => {
   try {
     const newDoc = new Document({
       userId: req.user.userId,
-      docType: req.body.docType,
-      filePath: req.file.path,
-      isApproved: false,
-      feedback: '',
+      filename: req.file.filename, // 🔥 注意！filename正确存
+      status: 'pending', // 🔥 默认pending
     });
     await newDoc.save();
     res.status(201).json({ message: 'Document uploaded successfully' });
   } catch (err) {
     next(err);
-    //res.status(500).json({ error: err.message });
   }
 };
 
-// HR获取in-progress员工列表（签证状态管理）
+// 🔥 员工查看自己上传的文档 (New)
+const getMyDocuments = async (req, res, next) => {
+  try {
+    const myDocuments = await Document.find({ userId: req.user.userId });
+    res.json(myDocuments);
+  } catch (err) {
+    next(err);
+  }
+};
+
+// HR获取所有员工的签证审核进度
 const getInProgressDocuments = async (req, res, next) => {
   try {
     const employees = await User.find({ role: 'employee' });
@@ -48,7 +55,7 @@ const getInProgressDocuments = async (req, res, next) => {
 
       if (!empDoc) {
         nextStep = 'Submit OPT Receipt';
-      } else if (!empDoc.isApproved) {
+      } else if (empDoc.status === 'pending') {
         nextStep = 'Waiting for HR Approval';
         waitingForApproval = true;
         documentId = empDoc._id;
@@ -75,7 +82,6 @@ const getInProgressDocuments = async (req, res, next) => {
     res.json(inProgressList);
   } catch (err) {
     next(err);
-    //res.status(500).json({ success: false, message: 'Server error', error: err.message });
   }
 };
 
@@ -86,14 +92,13 @@ const approveDocument = async (req, res, next) => {
     const doc = await Document.findById(docId);
     if (!doc) return res.status(404).json({ success: false, message: 'Document not found' });
 
-    doc.isApproved = true;
+    doc.status = 'approved'; // 🔥 修改status字段
     doc.feedback = '';
     await doc.save();
 
     res.json({ success: true, message: 'Document approved' });
   } catch (err) {
     next(err);
-    //res.status(500).json({ success: false, message: 'Server error', error: err.message });
   }
 };
 
@@ -106,20 +111,20 @@ const rejectDocument = async (req, res, next) => {
     const doc = await Document.findById(docId);
     if (!doc) return res.status(404).json({ success: false, message: 'Document not found' });
 
-    doc.isApproved = false;
+    doc.status = 'rejected'; // 🔥 修改status字段
     doc.feedback = feedback || 'Please resubmit the document.';
     await doc.save();
 
     res.json({ success: true, message: 'Document rejected with feedback' });
   } catch (err) {
     next(err);
-    //res.status(500).json({ success: false, message: 'Server error', error: err.message });
   }
 };
 
 module.exports = {
-    downloadDocument,
+  downloadDocument,
   uploadDocument,
+  getMyDocuments,           // 🔥 新增
   getInProgressDocuments,
   approveDocument,
   rejectDocument,
