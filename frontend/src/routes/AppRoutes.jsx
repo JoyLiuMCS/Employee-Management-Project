@@ -1,11 +1,12 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
+import ViewApplicationPage from '../pages/hr/ViewApplicationPage';  
 import LoginPage from '../pages/auth/LoginPage';
 import RegisterPage from '../pages/auth/RegisterPage';
 import OnboardingPage from '../pages/employee/OnboardingPage';
 import ProfilePage from '../pages/employee/ProfilePage';
 import VisaStatusPage from '../pages/employee/VisaStatusPage';
-
+import HiringManagementPage from '../pages/hr/HiringManagementPage';
 import DashboardPage from '../pages/hr/DashboardPage';
 import ApplicationReview from '../pages/hr/ApplicationReview';
 import EmployeeProfiles from '../pages/hr/EmployeeProfiles';
@@ -33,6 +34,7 @@ const AppRoutes = () => {
       <Route path="/visa-status" element={
         <ProtectedRoute><VisaStatusPage /></ProtectedRoute>
       } />
+      
 
       {/* Protected HR routes */}
       <Route path="/hr/dashboard" element={
@@ -46,6 +48,11 @@ const AppRoutes = () => {
       } />
       <Route path="/hr/visa-review" element={
         <ProtectedRoute><VisaReviewPage /></ProtectedRoute>
+      } />
+      <Route path="/hr/hiring-management" element={
+        <ProtectedRoute requireHR={true}>
+        <HiringManagementPage />
+        </ProtectedRoute>
       } />
       <Route path="/view-application/:id" element={
   <ProtectedRoute requireHR><ViewApplicationPage /></ProtectedRoute>

@@ -40,7 +40,7 @@ const HiringManagementPage = () => {
 
   const sendRegistrationEmail = async () => {
     try {
-      await api.post('/api/email/send-registration-email', { email });
+      await api.post('/api/email/send-registration-email', { email });  // 注意加上 /api/email
       message.success('Registration email sent!');
       setEmail('');
       fetchEmailHistory();
@@ -49,6 +49,7 @@ const HiringManagementPage = () => {
       message.error('Failed to send email');
     }
   };
+  
 
   const handleApprove = async (id) => {
     try {
