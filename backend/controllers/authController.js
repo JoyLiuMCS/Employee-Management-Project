@@ -19,7 +19,7 @@ const generateRefreshToken = (user) => {
 };
 
 const authController = {
-  async register(req, res) {
+  async register(req, res, next) {
     try {
       const { name, email, password, role } = req.body;
 
@@ -38,7 +38,7 @@ const authController = {
     }
   },
 
-  async login(req, res) {
+  async login(req, res, next) {
     try {
       const { email, password } = req.body;
       const user = await User.findOne({ email });
@@ -62,7 +62,7 @@ const authController = {
     }
   },
 
-  async refresh(req, res) {
+  async refresh(req, res, next) {
     try {
       const { refreshToken } = req.body;
       if (!refreshToken) return res.status(401).json({ success: false, message: 'Refresh token missing' });

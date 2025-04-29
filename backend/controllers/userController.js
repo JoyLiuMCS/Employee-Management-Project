@@ -2,18 +2,17 @@ const User = require('../models/User');
 
 const userController = {
   // Get all users
-  async getAllUsers(req, res) {
+  async getAllUsers(req, res, next) {
     try {
       const users = await User.find();
       res.status(200).json(users);
     } catch (err) {
-        next(err);
-      //res.status(500).json({ message: 'Server error', error: err });
+      next(err);
     }
   },
 
   // Get a specific user by ID
-  async getUserById(req, res) {
+  async getUserById(req, res, next) {
     try {
       const user = await User.findById(req.params.id);
       if (!user) {

@@ -3,7 +3,7 @@ const OnboardingApplication = require('../models/OnboardingApplication');
 const User = require('../models/User');
 const { sendEmail } = require('../utils/emailService');  // 下面我们也会写 emailService.js
 
-const getAllApplications = async (req, res) => {
+const getAllApplications = async (req, res, next) => {
     try {
       const allApplications = await OnboardingApplication.find().populate('userId', 'name email');
   
@@ -14,7 +14,7 @@ const getAllApplications = async (req, res) => {
     }
   };
 
-const getPendingApplications = async (req, res) => {
+const getPendingApplications = async (req, res, next) => {
     try {
       const pendingApplications = await OnboardingApplication.find({ status: 'pending' }).populate('userId', 'name email');
   
@@ -26,7 +26,7 @@ const getPendingApplications = async (req, res) => {
   };
 
 // HR审批通过
-const approveApplication = async (req, res) => {
+const approveApplication = async (req, res, next) => {
   try {
     const appId = req.params.id;
     const application = await OnboardingApplication.findById(appId).populate('userId');
@@ -49,7 +49,7 @@ const approveApplication = async (req, res) => {
 };
 
 // HR拒绝申请
-const rejectApplication = async (req, res) => {
+const rejectApplication = async (req, res, next) => {
   try {
     const appId = req.params.id;
     const { reason } = req.body; // 拒绝理由

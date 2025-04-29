@@ -17,7 +17,7 @@ const downloadDocument = (req, res, next) => {
 };
 
 // 员工上传文档
-const uploadDocument = async (req, res) => {
+const uploadDocument = async (req, res, next) => {
   try {
     const newDoc = new Document({
       userId: req.user.userId,

@@ -1,6 +1,6 @@
 const OnboardingApplication = require('../models/OnboardingApplication');
 
-const submitApplication = async (req, res) => {
+const submitApplication = async (req, res, next) => {
   try {
     const { visaType, workAuthorizationStart, workAuthorizationEnd, optReceipt, optEAD, i983, i20 } = req.body;
     const newApp = new OnboardingApplication({
