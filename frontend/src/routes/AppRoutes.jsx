@@ -11,6 +11,7 @@ import DashboardPage from '../pages/hr/DashboardPage';
 import ApplicationReview from '../pages/hr/ApplicationReview';
 import EmployeeProfiles from '../pages/hr/EmployeeProfiles';
 import VisaReviewPage from '../pages/hr/VisaReviewPage';
+import HomePage from '../pages/employee/HomePage';  // ⭐️ 新加
 
 import ProtectedRoute from '../components/ProtectedRoute';
 
@@ -34,6 +35,9 @@ const AppRoutes = () => {
       <Route path="/visa-status" element={
         <ProtectedRoute><VisaStatusPage /></ProtectedRoute>
       } />
+      <Route path="/home" element={
+        <ProtectedRoute><HomePage /></ProtectedRoute>   // ⭐️ 新加的home路由
+      } />
 
       {/* Protected HR routes */}
       <Route path="/hr/dashboard" element={
@@ -50,13 +54,14 @@ const AppRoutes = () => {
       } />
       <Route path="/hr/hiring-management" element={
         <ProtectedRoute requireHR={true}>
-        <HiringManagementPage />
+          <HiringManagementPage />
         </ProtectedRoute>
       } />
       <Route path="/view-application/:id" element={
-  <ProtectedRoute requireHR><ViewApplicationPage /></ProtectedRoute>
-} />
-
+        <ProtectedRoute requireHR>
+          <ViewApplicationPage />
+        </ProtectedRoute>
+      } />
     </Routes>
   );
 };

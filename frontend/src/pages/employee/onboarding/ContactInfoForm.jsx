@@ -1,8 +1,13 @@
 import { Form, Input } from 'antd';
+import { useSelector } from 'react-redux';
 
 const ContactInfoForm = () => {
+  
+  const auth = useSelector((state) => state.auth);
+  console.log('🔍 Redux auth.user:', auth.user);
   return (
     <>
+      
       <h2>Contact Information</h2>
 
       <Form.Item
@@ -34,7 +39,7 @@ const ContactInfoForm = () => {
           { type: 'email', message: 'Please enter a valid email address' }
         ]}
       >
-        <Input placeholder="e.g., example@example.com" disabled />
+        <Input disabled />
       </Form.Item>
     </>
   );

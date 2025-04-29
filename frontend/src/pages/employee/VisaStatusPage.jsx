@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import api from '../../utils/api';
-
+import Navbar from '../../components/Navbar';
 const { Title } = Typography;
 
 const steps = ['opt_receipt', 'opt_ead', 'i_983', 'i_20'];
@@ -134,6 +134,8 @@ const VisaStatusPage = () => {
   }
 
   return (
+    <>
+    <Navbar />
     <div style={{ maxWidth: '900px', margin: '2rem auto' }}>
       <Title level={2} style={{ textAlign: 'center' }}>Visa Document Center</Title>
 
@@ -175,6 +177,7 @@ const VisaStatusPage = () => {
         />
       </Card>
     </div>
+    </>
   );
 };
 

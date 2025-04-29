@@ -1,4 +1,5 @@
-import { Menu, Layout } from 'antd';
+import { Menu, Layout, Dropdown, Button } from 'antd';
+import { DownOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../redux/slices/authSlice';
@@ -11,50 +12,49 @@ const Navbar = () => {
   const dispatch = useDispatch();
   const { user, token } = useSelector((state) => state.auth);
 
-  const handleMenuClick = (e) => {
-    if (e.key === 'logout') {
-      // ✅ 正确清除localStorage
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      dispatch(logout());
-      message.success('Logged out successfully.');
-      navigate('/login');
-    } else {
-      navigate(e.key);
-    }
+  if (!token) {
+    return null; // ❗未登录不显示Navbar
+  }
+
+  const handleMenuClick = ({ key }) => {
+    navigate(key);
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    dispatch(logout());
+    message.success('Logged out successfully.');
+    navigate('/login');
+  };
+
+  const employeeMenu = (
+    <Menu onClick={handleMenuClick}>
+      <Menu.Item key="/profile">Personal Information</Menu.Item>
+      <Menu.Item key="/visa-status">Visa Status Management</Menu.Item>
+    </Menu>
+  );
+
+  const hrMenu = (
+    <Menu onClick={handleMenuClick}>
+      <Menu.Item key="/hr/dashboard">Home</Menu.Item>
+      <Menu.Item key="/hr/employee-profiles">Employee Profiles</Menu.Item>
+      <Menu.Item key="/hr/visa-review">Visa Status Management</Menu.Item>
+      <Menu.Item key="/hr/application-review">Hiring Management</Menu.Item>
+    </Menu>
+  );
+
   return (
-    <Header style={{ background: '#fff', padding: 0 }}>
-      <Menu
-        theme="light"
-        mode="horizontal"
-        onClick={handleMenuClick}
-        selectedKeys={[]}
-        style={{ display: 'flex', justifyContent: 'center' }}
-      >
-        {/* 如果是 HR */}
-        {user?.role === 'hr' && (
-          <>
-            <Menu.Item key="/hr/dashboard">Home</Menu.Item>
-            <Menu.Item key="/hr/employee-profiles">Employee Profiles</Menu.Item>
-            <Menu.Item key="/hr/visa-review">Visa Status Management</Menu.Item>
-            <Menu.Item key="/hr/application-review">Hiring Management</Menu.Item>
-          </>
-        )}
+    <Header style={{ background: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 2rem' }}>
+      <Dropdown overlay={user?.role === 'hr' ? hrMenu : employeeMenu}>
+        <Button type="link">
+          Menu <DownOutlined />
+        </Button>
+      </Dropdown>
 
-        {/* 如果是普通 Employee */}
-        {user?.role === 'employee' && (
-          <>
-            <Menu.Item key="/onboarding">Onboarding</Menu.Item>
-            <Menu.Item key="/profile">Profile</Menu.Item>
-            <Menu.Item key="/visa-status">Visa Status</Menu.Item>
-          </>
-        )}
-
-        {/* Logout 按钮 */}
-        {token && <Menu.Item key="logout" danger>Logout</Menu.Item>}
-      </Menu>
+      <Button type="primary" danger onClick={handleLogout}>
+        Logout
+      </Button>
     </Header>
   );
 };

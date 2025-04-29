@@ -26,26 +26,22 @@ const LoginPage = () => {
   const onFinish = async (values) => {
     try {
       showLoading('Logging in...');
-      const res = await api.post('/auth/login', values);
+      const res = await api.post('/auth/login', values);  // 🔥 注意，去掉了/api
       const { user, accessToken } = res.data;
-  
+
       dispatch(loginSuccess({ user, token: accessToken }));
-  
-      // ✅ 登录成功后同时保存token和user到localStorage
       localStorage.setItem('token', accessToken);
       localStorage.setItem('user', JSON.stringify(user));
-  
       showSuccess('Login successful!');
-  
-      const params = new URLSearchParams(location.search);
-      const redirectParam = params.get('redirect');
-  
-      if (redirectParam) {
-        navigate(redirectParam);
-      } else if (user?.role === 'hr') {
-        navigate('/hr/dashboard');
+
+      // 登录成功后，拉取onboarding状态
+      const onboardingRes = await api.get('/onboarding/status');  // 🔥 修改这里，去掉了/api
+      const onboardingStatus = onboardingRes.data.status;
+
+      if (onboardingStatus === 'approved') {
+        navigate('/home');
       } else {
-        navigate('/profile');
+        navigate('/onboarding');
       }
     } catch (err) {
       console.error(err);
@@ -54,7 +50,7 @@ const LoginPage = () => {
       hideLoading();
     }
   };
-  
+
   return (
     <div style={{ display: 'flex', height: '100vh', justifyContent: 'center', alignItems: 'center' }}>
       <Card title="Login" style={{ width: 400 }}>

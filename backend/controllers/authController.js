@@ -63,10 +63,10 @@ const authController = {
       }
 
       const newUser = new User({
-        email,
-        name: username,
+        name: username,  // ✅ 这里是注册表单里填的名字
+        email,           // ✅ 这里是token里的email
         password,
-        role: 'employee',  // 新注册的一律是employee
+        role: 'employee',
       });
 
       await newUser.save();
@@ -94,7 +94,7 @@ const authController = {
         success: true,
         accessToken,
         refreshToken,
-        user: { id: user._id, name: user.name, role: user.role }
+        user: { id: user._id, name: user.name, role: user.role, email: user.email }
       });
     } catch (err) {
       next(err);

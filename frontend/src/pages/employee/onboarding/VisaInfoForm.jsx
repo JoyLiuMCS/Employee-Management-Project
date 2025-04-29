@@ -1,4 +1,4 @@
-import { Form, Radio, Select, DatePicker, Input, Upload, Button } from 'antd';
+import { Form, Radio, Select, DatePicker, Input, Upload, Button, message } from 'antd';
 import { UploadOutlined } from '@ant-design/icons';
 import { useState } from 'react';
 
@@ -14,18 +14,17 @@ const VisaInfoForm = () => {
       const isImage = file.type.startsWith('image/');
       const isLt10M = file.size / 1024 / 1024 < 10;
       if (!isPDF && !isImage) {
+        message.error('You can only upload PDF or image files!');
         return Upload.LIST_IGNORE;
       }
       if (!isLt10M) {
+        message.error('File must be smaller than 10MB!');
         return Upload.LIST_IGNORE;
       }
       return true;
     },
-    multiple: false,
-    maxCount: 1,
-    showUploadList: true,
     customRequest: ({ file, onSuccess }) => {
-      setTimeout(() => onSuccess('ok'), 0); // 模拟上传
+      setTimeout(() => onSuccess('ok'), 0);
     },
   };
 
@@ -81,8 +80,8 @@ const VisaInfoForm = () => {
               getValueFromEvent={(e) => e.file}
               rules={[{ required: true, message: 'OPT Receipt is required' }]}
             >
-              <Upload {...uploadProps}>
-                <Button icon={<UploadOutlined />}>Click to Upload</Button>
+              <Upload {...uploadProps} maxCount={1}>
+                <Button icon={<UploadOutlined />}>Upload OPT Receipt</Button>
               </Upload>
             </Form.Item>
           )}

@@ -7,8 +7,12 @@ import { showLoading, showSuccess, showError, hideLoading } from '../../utils/me
 import PersonalInfoForm from './onboarding/PersonalInfoForm';
 import ContactInfoForm from './onboarding/ContactInfoForm';
 import AddressForm from './onboarding/AddressForm';
+import Navbar from '../../components/Navbar';
+import dayjs from 'dayjs';
+
 
 const { Title, Text } = Typography;
+
 
 const ProfilePage = () => {
   const [isEditing, setIsEditing] = useState(false);
@@ -45,7 +49,15 @@ const ProfilePage = () => {
 
   const handleEdit = () => {
     setIsEditing(true);
-    form.setFieldsValue(user);
+    
+    const valuesToSet = {
+      ...user,
+      visaStartDate: user.visaStartDate ? dayjs(user.visaStartDate) : null,
+      visaEndDate: user.visaEndDate ? dayjs(user.visaEndDate) : null,
+      dateOfBirth: user.dateOfBirth ? dayjs(user.dateOfBirth) : null,
+    };
+  
+    form.setFieldsValue(valuesToSet);
   };
 
   const handleCancel = () => {
@@ -80,6 +92,8 @@ const ProfilePage = () => {
   }
 
   return (
+    <>
+    <Navbar />
     <div style={{ maxWidth: '800px', margin: '2rem auto' }}>
       <Card
         title="My Profile"
@@ -125,6 +139,7 @@ const ProfilePage = () => {
         </Space>
       </Card>
     </div>
+    </>
   );
 };
 
