@@ -6,10 +6,6 @@ const { authMiddleware, authorizeRoles } = require('../middleware/authMiddleware
 const { downloadDocument, uploadDocument, getInProgressDocuments, approveDocument, rejectDocument } = require('../controllers/documentController');
 
 router.post('/upload', authMiddleware, authorizeRoles('employee'), upload.single('file'), uploadDocument);
-router.get('/in-progress', authMiddleware, authorizeRoles('hr'), getInProgressDocuments);
-router.post('/approve/:id', authMiddleware, authorizeRoles('hr'), approveDocument);
-router.post('/reject/:id', authMiddleware, authorizeRoles('hr'), rejectDocument);
-
 router.get('/download/:filename', 
     authMiddleware, 
     downloadDocument);
