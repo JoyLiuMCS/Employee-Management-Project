@@ -22,7 +22,7 @@ const VisaReviewPage = () => {
 
   const fetchInProgress = async () => {
     try {
-      const res = await api.get('/documents/in-progress');  // ✅
+      const res = await api.get('/documents/in-progress');
       setInProgressData(res.data);
     } catch (err) {
       console.error('Error fetching in-progress data', err);
@@ -32,13 +32,13 @@ const VisaReviewPage = () => {
 
   const fetchAllEmployees = async () => {
     try {
-      const res = await api.get('/users');  // ✅
+      const res = await api.get('/users');
       const employees = res.data
         .filter(u => u.role !== 'hr')
         .map(emp => ({
           ...emp,
-          daysRemaining: emp.workAuthEndDate ? 
-            Math.ceil((new Date(emp.workAuthEndDate) - new Date()) / (1000 * 60 * 60 * 24)) 
+          daysRemaining: emp.workAuthEndDate
+            ? Math.ceil((new Date(emp.workAuthEndDate) - new Date()) / (1000 * 60 * 60 * 24))
             : '',
           workAuthStartDate: emp.workAuthStartDate ? emp.workAuthStartDate.split('T')[0] : '',
           workAuthEndDate: emp.workAuthEndDate ? emp.workAuthEndDate.split('T')[0] : '',
@@ -52,6 +52,7 @@ const VisaReviewPage = () => {
 
   const handleApprove = async (docId) => {
     try {
+      console.log('🟢 Approving docId:', docId);
       await api.post(`/documents/approve/${docId}`);
       message.success('Document approved!');
       loadData();
@@ -65,6 +66,7 @@ const VisaReviewPage = () => {
     const feedback = prompt('Please enter rejection feedback:');
     if (!feedback) return;
     try {
+      console.log('🔴 Rejecting docId:', docId);
       await api.post(`/documents/reject/${docId}`, { feedback });
       message.success('Document rejected!');
       loadData();
@@ -126,7 +128,7 @@ const VisaReviewPage = () => {
       title: 'Action',
       render: (_, record) => (
         <>
-          {record.waitingForApproval ? (
+          {record.waitingForApproval && record.documentId ? (
             <>
               <Button
                 type="primary"
