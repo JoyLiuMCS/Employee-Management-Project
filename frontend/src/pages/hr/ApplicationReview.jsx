@@ -1,7 +1,7 @@
 import { Table, Card } from 'antd';
 
 const ApplicationReview = () => {
-  // 模拟一些审核数据
+
   const data = [
     {
       key: '1',

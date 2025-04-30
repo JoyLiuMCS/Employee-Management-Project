@@ -15,7 +15,7 @@ const EmployeeProfiles = () => {
     const fetchEmployees = async () => {
       try {
         const res = await api.get('/users');
-        const hrFiltered = res.data.filter(user => user.role !== 'hr'); // 不显示 HR
+        const hrFiltered = res.data.filter(user => user.role !== 'hr'); 
         const sorted = hrFiltered.sort((a, b) => (a.lastName || '').localeCompare(b.lastName || ''));
         setEmployees(sorted);
         setFilteredEmployees(sorted);

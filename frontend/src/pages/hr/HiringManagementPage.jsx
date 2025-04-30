@@ -19,13 +19,13 @@ const HiringManagementPage = () => {
   };
 
   const fetchEmailHistory = async () => {
-    // ✅ 如果你后端还没实现 history，可以保持为空
+
     setHistory([]);
   };
 
   const fetchApplications = async () => {
     try {
-      const res = await api.get('/applications');  // ✅ baseURL 已包含 /api
+      const res = await api.get('/applications');  
       const apps = res.data?.applications || [];
 
       const pending = apps.filter(app => app.status === 'pending');
@@ -75,7 +75,7 @@ const HiringManagementPage = () => {
           return Promise.reject();
         }
         try {
-          await api.post(`/applications/${id}/reject`, { reason }); // ✅ 参数名要和后端一致
+          await api.post(`/applications/${id}/reject`, { reason }); 
           message.success('Application rejected!');
           fetchApplications();
         } catch (err) {
