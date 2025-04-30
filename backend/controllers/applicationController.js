@@ -2,8 +2,6 @@
 const OnboardingApplication = require('../models/OnboardingApplication');
 const User = require('../models/User');
 const { sendEmail } = require('../utils/emailService');
-
-// 查看所有申请
 const getAllApplications = async (req, res, next) => {
   try {
     const allApplications = await OnboardingApplication.find().populate('userId', 'name email');
@@ -13,7 +11,6 @@ const getAllApplications = async (req, res, next) => {
   }
 };
 
-// 查看 pending 申请
 const getPendingApplications = async (req, res, next) => {
   try {
     const pendingApplications = await OnboardingApplication.find({ status: 'pending' }).populate('userId', 'name email');
@@ -23,7 +20,6 @@ const getPendingApplications = async (req, res, next) => {
   }
 };
 
-// 查看单个申请
 const getApplicationById = async (req, res, next) => {
   try {
     const application = await OnboardingApplication.findById(req.params.id).populate('userId', 'name email');
@@ -36,7 +32,6 @@ const getApplicationById = async (req, res, next) => {
   }
 };
 
-// HR审批通过
 const approveApplication = async (req, res, next) => {
   try {
     const appId = req.params.id;
@@ -49,19 +44,17 @@ const approveApplication = async (req, res, next) => {
     application.status = 'approved';
     await application.save();
 
-    await sendEmail(application.userId.email, 'Application Approved', 'Congratulations! Your application has been approved.');
-
+    await sendEmail(application.userId.email, 'Application Approved', 'Your application has been approved.');
     res.status(200).json({ message: 'Application approved' });
   } catch (err) {
     next(err);
   }
 };
 
-// HR拒绝申请
 const rejectApplication = async (req, res, next) => {
   try {
     const appId = req.params.id;
-    const { rejectionReason } = req.body; // 注意改名匹配前端
+    const { rejectionReason } = req.body; 
 
     const application = await OnboardingApplication.findById(appId).populate('userId');
 
@@ -73,8 +66,7 @@ const rejectApplication = async (req, res, next) => {
     application.rejectionReason = rejectionReason || 'No reason provided';
     await application.save();
 
-    await sendEmail(application.userId.email, 'Application Rejected', `Unfortunately, your application was rejected. Reason: ${rejectionReason}`);
-
+    await sendEmail(application.userId.email, 'Application Rejected', `Your application was rejected. Reason: ${rejectionReason}`);
     res.status(200).json({ message: 'Application rejected' });
   } catch (err) {
     next(err);

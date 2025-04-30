@@ -4,7 +4,7 @@ const mongoose = require('mongoose');
 const documentSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User', // 关联到User
+    ref: 'User', 
     required: true,
   },
   filename: {
@@ -19,7 +19,7 @@ const documentSchema = new mongoose.Schema({
   status: {
     type: String,
     enum: ['pending', 'approved', 'rejected'],
-    default: 'pending', // 上传后默认是pending
+    default: 'pending', 
   },
   feedback: {
     type: String,

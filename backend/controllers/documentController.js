@@ -3,7 +3,6 @@ const User = require('../models/User');
 const path = require('path');
 const fs = require('fs');
 
-// 下载文件
 const downloadDocument = (req, res, next) => {
   const { filename } = req.params;
   const filePath = path.join(__dirname, '../uploads', filename);
@@ -16,13 +15,12 @@ const downloadDocument = (req, res, next) => {
   });
 };
 
-// 员工上传文档
 const uploadDocument = async (req, res, next) => {
   try {
     const newDoc = new Document({
       userId: req.user.userId,
-      filename: req.file.filename, // 🔥 注意！filename正确存
-      status: 'pending', // 🔥 默认pending
+      filename: req.file.filename, 
+      status: 'pending', 
     });
     await newDoc.save();
     res.status(201).json({ message: 'Document uploaded successfully' });
@@ -31,7 +29,6 @@ const uploadDocument = async (req, res, next) => {
   }
 };
 
-// 🔥 员工查看自己上传的文档 (New)
 const getMyDocuments = async (req, res, next) => {
   try {
     const myDocuments = await Document.find({ userId: req.user.userId });
@@ -41,7 +38,6 @@ const getMyDocuments = async (req, res, next) => {
   }
 };
 
-// HR获取所有员工的签证审核进度
 const getInProgressDocuments = async (req, res, next) => {
   try {
     const employees = await User.find({ role: 'employee' });
@@ -85,14 +81,13 @@ const getInProgressDocuments = async (req, res, next) => {
   }
 };
 
-// HR批准文档
 const approveDocument = async (req, res, next) => {
   try {
     const docId = req.params.id;
     const doc = await Document.findById(docId);
     if (!doc) return res.status(404).json({ success: false, message: 'Document not found' });
 
-    doc.status = 'approved'; // 🔥 修改status字段
+    doc.status = 'approved'; 
     doc.feedback = '';
     await doc.save();
 
@@ -102,7 +97,6 @@ const approveDocument = async (req, res, next) => {
   }
 };
 
-// HR拒绝文档 + 给反馈
 const rejectDocument = async (req, res, next) => {
   try {
     const docId = req.params.id;
@@ -111,7 +105,7 @@ const rejectDocument = async (req, res, next) => {
     const doc = await Document.findById(docId);
     if (!doc) return res.status(404).json({ success: false, message: 'Document not found' });
 
-    doc.status = 'rejected'; // 🔥 修改status字段
+    doc.status = 'rejected'; 
     doc.feedback = feedback || 'Please resubmit the document.';
     await doc.save();
 
@@ -124,7 +118,7 @@ const rejectDocument = async (req, res, next) => {
 module.exports = {
   downloadDocument,
   uploadDocument,
-  getMyDocuments,           // 🔥 新增
+  getMyDocuments,         
   getInProgressDocuments,
   approveDocument,
   rejectDocument,

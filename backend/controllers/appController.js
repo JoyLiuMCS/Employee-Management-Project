@@ -34,7 +34,6 @@ const submitApplication = async (req, res, next) => {
     const userId = req.user.userId;
     const uploadedDocs = [];
 
-    // 🔥 存储文件信息到 Document 表
     const files = req.files || {};
     const fileFields = ['profilePicture', 'driversLicense', 'workAuthorization'];
 
@@ -53,7 +52,6 @@ const submitApplication = async (req, res, next) => {
       }
     }
 
-    // 创建 OnboardingApplication 文档
     const newApp = new OnboardingApplication({
       userId,
       visaType,
@@ -67,7 +65,6 @@ const submitApplication = async (req, res, next) => {
     });
     await newApp.save();
 
-    // 🔁 同步更新 User 表
     const user = await User.findById(userId);
     if (user) {
       user.phoneNumber = phoneNumber || user.phoneNumber;
@@ -83,7 +80,7 @@ const submitApplication = async (req, res, next) => {
 
     res.status(201).json({ message: 'Onboarding submitted and user updated successfully.' });
   } catch (err) {
-    console.error('❌ Onboarding submit error:', err);
+    console.error('Submit error:', err);
     next(err);
   }
 };

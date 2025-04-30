@@ -2,6 +2,8 @@ import { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { loginSuccess } from './redux/slices/authSlice';
 import AppRoutes from './routes/AppRoutes';
+import Navbar from './components/Navbar';
+
 
 function App() {
   const dispatch = useDispatch();
@@ -16,6 +18,7 @@ function App() {
 
   return (
     <div>
+      <Navbar /> 
       <AppRoutes />
     </div>
   );

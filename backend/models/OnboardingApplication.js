@@ -14,7 +14,7 @@ const onboardingSchema = new mongoose.Schema({
   documents: [
     {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Document',  // ⭐️关联到Document model
+      ref: 'Document',  
     }
   ],
   createdAt: { type: Date, default: Date.now }

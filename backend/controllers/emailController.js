@@ -12,14 +12,11 @@ const sendRegistrationEmail = async (req, res, next) => {
       return res.status(400).json({ message: 'Email is required' });
     }
 
-    // 生成注册token，3小时有效
     const registrationToken = jwt.sign({ email }, process.env.JWT_SECRET, { expiresIn: '3h' });
 
-    // 🔥 根据环境动态生成注册链接
     const frontendURL = process.env.FRONTEND_URL || 'http://localhost:5173';
     const registrationLink = `${frontendURL}/register/${registrationToken}`;
 
-    // 配置nodemailer
     const transporter = nodemailer.createTransport({
       service: 'Gmail',
       auth: {
@@ -28,7 +25,6 @@ const sendRegistrationEmail = async (req, res, next) => {
       },
     });
 
-    // 发送邮件
     await transporter.sendMail({
       from: process.env.EMAIL_USER,
       to: email,
@@ -36,7 +32,6 @@ const sendRegistrationEmail = async (req, res, next) => {
       html: `<p>Please click <a href="${registrationLink}">here</a> to complete your registration. Link expires in 3 hours.</p>`,
     });
 
-    // 保存发送记录
     await EmailHistory.create({
       email,
       name: name || '',
@@ -51,7 +46,6 @@ const sendRegistrationEmail = async (req, res, next) => {
   }
 };
 
-// 查看邮件发送历史
 const getEmailHistory = async (req, res) => {
   try {
     const history = await EmailHistory.find().sort({ createdAt: -1 });
