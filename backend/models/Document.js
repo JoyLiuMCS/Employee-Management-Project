@@ -15,6 +15,7 @@ const documentSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  originalName: { type: String, required: true },
   status: {
     type: String,
     enum: ['pending', 'approved', 'rejected'],

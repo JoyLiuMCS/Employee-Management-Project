@@ -1,5 +1,5 @@
 import { Form, Input, Button, message } from 'antd';
-import { useNavigate } from 'react-router-dom';  // ⭐️ 加了 useNavigate
+import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux'; 
 import { useEffect, useState } from 'react';
 import PersonalInfoForm from './onboarding/PersonalInfoForm';
@@ -11,31 +11,42 @@ import UploadDocumentsForm from './onboarding/UploadDocumentsForm';
 import api from '../../utils/api';
 import { showLoading, showSuccess, showError, hideLoading } from '../../utils/message';
 
-
-
-
 const OnboardingPage = () => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate(); // ⭐️ 初始化 navigate
+  const navigate = useNavigate();
   const auth = useSelector((state) => state.auth);
 
   useEffect(() => {
-    if (!auth.token) {
-      setTimeout(() => {
-        navigate('/login?redirect=onboarding');
-      }, 100); 
-    }
+    const checkAccess = async () => {
+      if (!auth.token) {
+        setTimeout(() => navigate('/login?redirect=onboarding'), 100);
+        return;
+      }
+
+      try {
+        const res = await api.get('/onboarding/status');
+        const status = res.data.status;
+        if (status === 'pending') {
+          navigate('/profile');
+        } else if (status === 'approved') {
+          navigate('/home');
+        }
+      } catch (err) {
+        console.error('❌ Failed to fetch onboarding status:', err);
+      }
+    };
+
+    checkAccess();
   }, [auth.token, navigate]);
-  
 
   const onFinish = async (values) => {
     try {
       setLoading(true);
       showLoading('Submitting your onboarding form...');
-  
+
       const formData = new FormData();
-  
+
       for (const key in values) {
         if (
           key !== 'profilePicture' &&
@@ -46,7 +57,7 @@ const OnboardingPage = () => {
           formData.append(key, values[key]);
         }
       }
-  
+
       if (values.profilePicture?.originFileObj) {
         formData.append('profilePicture', values.profilePicture.originFileObj);
       }
@@ -59,13 +70,11 @@ const OnboardingPage = () => {
       if (values.emergencyContacts) {
         formData.append('emergencyContacts', JSON.stringify(values.emergencyContacts));
       }
-  
-      // 🔥 第一步：提交 OnboardingApplication
+
       await api.post('/onboarding/submit', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
-  
-      // 🔥 第二步：同步更新 User表
+
       await api.patch(`/users/${auth.user.id}`, {
         firstName: values.firstName,
         lastName: values.lastName,
@@ -84,11 +93,9 @@ const OnboardingPage = () => {
         otherVisaTitle: values.otherVisaTitle,
         emergencyContacts: values.emergencyContacts,
       });
-  
+
       showSuccess('Submitted successfully!');
       console.log('✅ Server Response: Onboarding and Profile updated.');
-  
-      // 🔥 第三步：跳转到 Profile页面
       navigate('/profile');
     } catch (err) {
       console.error('❌ Error submitting onboarding form:', err);
@@ -98,8 +105,6 @@ const OnboardingPage = () => {
       hideLoading();
     }
   };
-  
-  
 
   return (
     <Form
@@ -107,7 +112,7 @@ const OnboardingPage = () => {
       layout="vertical"
       onFinish={onFinish}
       initialValues={{
-        email: auth.user?.email || '',  // (可选) 默认值，后面可以从 Redux user里取
+        email: auth.user?.email || '',
       }}
       style={{ maxWidth: 500, margin: '0 auto' }}
     >

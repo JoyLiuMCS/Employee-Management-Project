@@ -44,6 +44,7 @@ const submitApplication = async (req, res, next) => {
         const newDoc = new Document({
           userId,
           filename: file.filename,
+          originalName: file.originalname,
           fileUrl: `/uploads/${file.filename}`,
           status: 'pending',
         });
