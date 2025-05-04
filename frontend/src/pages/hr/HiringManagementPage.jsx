@@ -2,9 +2,8 @@ import { useEffect, useState } from 'react';
 import { Tabs, Table, Button, Input, message, Modal } from 'antd';
 import api from '../../utils/api';
 
-const { Search } = Input;
-
 const HiringManagementPage = () => {
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [history, setHistory] = useState([]);
   const [applications, setApplications] = useState({ pending: [], approved: [], rejected: [] });
@@ -19,8 +18,13 @@ const HiringManagementPage = () => {
   };
 
   const fetchEmailHistory = async () => {
-
-    setHistory([]);
+    try {
+      const res = await api.get('/email/history');
+      setHistory(res.data);
+    } catch (err) {
+      console.error(err);
+      message.error('Failed to load email history');
+    }
   };
 
   const fetchApplications = async () => {
@@ -39,11 +43,20 @@ const HiringManagementPage = () => {
     }
   };
 
-  const sendRegistrationEmail = async () => {
+  const sendRegistrationEmail = async (data) => {
+    const payload = data ? { name: data.name, email: data.email } : { name, email };
+    if (!payload.email || !payload.name) {
+      message.warning('Please enter both name and email');
+      return;
+    }
+
     try {
-      await api.post('/email/send-registration-email', { email });
-      message.success('Registration email sent!');
-      setEmail('');
+      await api.post('/email/send-registration-email', payload);
+      message.success(`Registration email sent to ${payload.name}`);
+      if (!data) {
+        setEmail('');
+        setName('');
+      }
       fetchEmailHistory();
     } catch (err) {
       console.error(err);
@@ -97,24 +110,55 @@ const HiringManagementPage = () => {
     },
     {
       title: 'Action',
-      render: (_, record) => (
-        <>
-          {record.status === 'pending' && (
-            <>
-              <Button type="primary" onClick={() => handleApprove(record._id)} style={{ marginRight: 8 }}>
-                Approve
-              </Button>
-              <Button danger onClick={() => handleReject(record._id)}>
-                Reject
-              </Button>
-            </>
-          )}
-          <Button type="link" href={`/view-application/${record._id}`} target="_blank">
-            View Application
-          </Button>
-        </>
-      ),
+      render: (_, record) => {
+        const name = record.fullName || record.userId?.name || '';
+        const email = record.email || record.userId?.email || '';
+
+        return (
+          <>
+            {record.status === 'pending' && (
+              <>
+                <Button type="primary" onClick={() => handleApprove(record._id)} style={{ marginRight: 8 }}>
+                  Approve
+                </Button>
+                <Button danger onClick={() => handleReject(record._id)} style={{ marginRight: 8 }}>
+                  Reject
+                </Button>
+              </>
+            )}
+            <Button
+              onClick={() => sendRegistrationEmail({ name, email })}
+              disabled={!email}
+              style={{ marginRight: 8 }}
+            >
+              Send Email
+            </Button>
+            <Button type="link" href={`/view-application/${record._id}`} target="_blank">
+              View Application
+            </Button>
+          </>
+        );
+      }
     },
+  ];
+
+  const columnsHistory = [
+    { title: 'Name', dataIndex: 'name' },
+    { title: 'Email', dataIndex: 'email' },
+    {
+      title: 'Registration Link',
+      dataIndex: 'token',
+      render: (token) => {
+        const base = import.meta.env.VITE_FRONTEND_URL || 'http://localhost:5173';
+        return (
+          <a href={`${base}/register/${token}`} target="_blank" rel="noreferrer">
+            {`${base}/register/${token}`}
+          </a>
+        );
+      },
+    },
+    { title: 'Status', dataIndex: 'status' },
+    { title: 'Created At', dataIndex: 'createdAt', render: (v) => new Date(v).toLocaleString() },
   ];
 
   return (
@@ -127,13 +171,28 @@ const HiringManagementPage = () => {
           children: (
             <>
               <Input
+                placeholder="Name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                style={{ width: 200, marginRight: 8 }}
+              />
+              <Input
                 placeholder="Enter new employee email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 style={{ width: 300, marginRight: 8 }}
               />
-              <Button type="primary" onClick={sendRegistrationEmail}>Generate Token and Send Email</Button>
-              <h3 style={{ marginTop: 24 }}>History (TODO)</h3>
+              <Button type="primary" onClick={() => sendRegistrationEmail()}>
+                Generate Token and Send Email
+              </Button>
+
+              <h3 style={{ marginTop: 24 }}>Token Send History</h3>
+              <Table
+                rowKey="_id"
+                dataSource={history}
+                columns={columnsHistory}
+                pagination={{ pageSize: 5 }}
+              />
             </>
           )
         },
