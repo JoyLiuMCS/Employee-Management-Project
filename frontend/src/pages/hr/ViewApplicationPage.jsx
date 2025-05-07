@@ -13,7 +13,9 @@ const ViewApplicationPage = () => {
     const fetchApplication = async () => {
       try {
         const res = await api.get(`/applications/${id}`);
+        console.log("✅ 正确的数据结构是：", res.data);
         setApp(res.data);
+
       } catch (err) {
         console.error(err);
         message.error('Failed to load application');
@@ -107,16 +109,23 @@ const ViewApplicationPage = () => {
         )}
       </Descriptions>
 
-      {status === 'pending' && (
-        <div style={{ marginTop: 24 }}>
-          <Button type="primary" onClick={handleApprove} style={{ marginRight: 8 }}>
-            Approve
-          </Button>
-          <Button danger onClick={handleReject}>
-            Reject
-          </Button>
-        </div>
-      )}
+      <div style={{ marginTop: 24 }}>
+        <p>🔍 当前状态: {JSON.stringify(status)}</p>
+        <p>原始 app 对象: {JSON.stringify(app)}</p>
+
+        {status === 'pending' ? (
+          <>
+            <Button type="primary" onClick={handleApprove} style={{ marginRight: 8 }}>
+              Approve
+            </Button>
+            <Button danger onClick={handleReject}>
+              Reject
+            </Button>
+          </>
+        ) : (
+          <p style={{ color: 'gray' }}>⬆️ 状态不是 pending，不显示按钮</p>
+        )}
+      </div>
     </div>
   );
 };

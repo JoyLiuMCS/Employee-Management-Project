@@ -1,36 +1,37 @@
+import { useEffect, useState } from 'react';
 import { Table, Card, Button, message } from 'antd';
-import api from '../../utils/api'; // 确保路径正确
+import api from '../../utils/api';
 
 const ApplicationReview = () => {
-  const data = [
-    {
-      key: '1',
-      name: 'John Doe',
-      position: 'Software Engineer',
-      status: 'Pending',
-      email: 'john@example.com',
-    },
-    {
-      key: '2',
-      name: 'Jane Smith',
-      position: 'Product Manager',
-      status: 'Approved',
-      email: 'jane@example.com',
-    },
-  ];
+  const [applications, setApplications] = useState([]);
+
+  useEffect(() => {
+    const fetchApps = async () => {
+      try {
+        const res = await api.get('/applications');
+        const data = res.data?.applications || res.data || [];
+        setApplications(data);
+      } catch (err) {
+        console.error(err);
+        message.error('Failed to load applications');
+      }
+    };
+
+    fetchApps();
+  }, []);
 
   const handleSendEmail = async (record) => {
-    if (!record.email) {
+    if (!record.email && !record.userId?.email) {
       message.error('Email not available.');
       return;
     }
 
     try {
       await api.post('/email/send-registration-email', {
-        name: record.name,
-        email: record.email,
+        name: record.name || record.userId?.name,
+        email: record.email || record.userId?.email,
       });
-      message.success(`Email sent to ${record.name}`);
+      message.success(`Email sent to ${record.name || record.userId?.name}`);
     } catch (err) {
       console.error(err);
       message.error('Failed to send email');
@@ -40,26 +41,35 @@ const ApplicationReview = () => {
   const columns = [
     {
       title: 'Applicant Name',
-      dataIndex: 'name',
-      key: 'name',
+      render: (_, record) => record.name || record.userId?.name || 'N/A',
     },
     {
       title: 'Position',
-      dataIndex: 'position',
-      key: 'position',
+      dataIndex: 'position', // only works if this field exists in your schema
+      render: (text) => text || 'N/A',
     },
     {
       title: 'Status',
       dataIndex: 'status',
-      key: 'status',
+      render: (text) => text || 'N/A',
     },
     {
       title: 'Action',
       key: 'action',
       render: (_, record) => (
-        <Button type="primary" onClick={() => handleSendEmail(record)}>
-          Send Email
-        </Button>
+        <>
+          <Button
+            type="link"
+            href={`/view-application/${record._id}`}
+            target="_blank"
+            style={{ marginRight: 8 }}
+          >
+            View Application
+          </Button>
+          <Button type="primary" onClick={() => handleSendEmail(record)}>
+            Send Email
+          </Button>
+        </>
       ),
     },
   ];
@@ -68,7 +78,8 @@ const ApplicationReview = () => {
     <div style={{ padding: '2rem' }}>
       <Card title="Application Review" bordered={false}>
         <Table
-          dataSource={data}
+          rowKey="_id"
+          dataSource={applications}
           columns={columns}
           pagination={false}
         />

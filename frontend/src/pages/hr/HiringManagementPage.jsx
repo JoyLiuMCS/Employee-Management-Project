@@ -31,9 +31,9 @@ const HiringManagementPage = () => {
     try {
       const res = await api.get('/applications');
       const apps = res.data?.applications || res.data || [];
-      const pending = apps.filter(app => app.status === 'pending');
-      const approved = apps.filter(app => app.status === 'approved');
-      const rejected = apps.filter(app => app.status === 'rejected');
+      const pending = apps.filter(app => app.status?.toLowerCase() === 'pending');
+      const approved = apps.filter(app => app.status?.toLowerCase() === 'approved');
+      const rejected = apps.filter(app => app.status?.toLowerCase() === 'rejected');
       setApplications({ pending, approved, rejected });
     } catch (err) {
       console.error(err);
@@ -124,7 +124,7 @@ const HiringManagementPage = () => {
               View Application
             </Button>
 
-            {status === 'pending' && (
+            {record.status?.toLowerCase() === 'pending' && (
               <>
                 <Button type="primary" onClick={() => handleApprove(id)} style={{ marginRight: 8 }}>
                   Approve
@@ -134,6 +134,10 @@ const HiringManagementPage = () => {
                 </Button>
               </>
             )}
+
+            <Button type="link" onClick={() => sendRegistrationEmail({ name, email })}>
+              Send Email
+            </Button>
           </>
         );
       }
