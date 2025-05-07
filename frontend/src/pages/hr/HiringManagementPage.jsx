@@ -29,13 +29,11 @@ const HiringManagementPage = () => {
 
   const fetchApplications = async () => {
     try {
-      const res = await api.get('/applications');  
-      const apps = res.data?.applications || [];
-
+      const res = await api.get('/applications');
+      const apps = res.data?.applications || res.data || [];
       const pending = apps.filter(app => app.status === 'pending');
       const approved = apps.filter(app => app.status === 'approved');
       const rejected = apps.filter(app => app.status === 'rejected');
-
       setApplications({ pending, approved, rejected });
     } catch (err) {
       console.error(err);
@@ -88,7 +86,7 @@ const HiringManagementPage = () => {
           return Promise.reject();
         }
         try {
-          await api.post(`/applications/${id}/reject`, { reason }); 
+          await api.post(`/applications/${id}/reject`, { rejectionReason: reason });
           message.success('Application rejected!');
           fetchApplications();
         } catch (err) {
@@ -99,10 +97,10 @@ const HiringManagementPage = () => {
     });
   };
 
-  const columnsApplications = [
+  const getColumnsByStatus = (status) => [
     {
       title: 'Name',
-      render: (_, record) => `${record.fullName || record.userId?.name || 'Unknown'}`,
+      render: (_, record) => record.fullName || record.userId?.name || 'Unknown',
     },
     {
       title: 'Email',
@@ -113,29 +111,29 @@ const HiringManagementPage = () => {
       render: (_, record) => {
         const name = record.fullName || record.userId?.name || '';
         const email = record.email || record.userId?.email || '';
+        const id = record._id;
 
         return (
           <>
-            {record.status === 'pending' && (
+            <Button
+              type="link"
+              href={`/view-application/${id}`}
+              target="_blank"
+              style={{ marginRight: 8 }}
+            >
+              View Application
+            </Button>
+
+            {status === 'pending' && (
               <>
-                <Button type="primary" onClick={() => handleApprove(record._id)} style={{ marginRight: 8 }}>
+                <Button type="primary" onClick={() => handleApprove(id)} style={{ marginRight: 8 }}>
                   Approve
                 </Button>
-                <Button danger onClick={() => handleReject(record._id)} style={{ marginRight: 8 }}>
+                <Button danger onClick={() => handleReject(id)} style={{ marginRight: 8 }}>
                   Reject
                 </Button>
               </>
             )}
-            <Button
-              onClick={() => sendRegistrationEmail({ name, email })}
-              disabled={!email}
-              style={{ marginRight: 8 }}
-            >
-              Send Email
-            </Button>
-            <Button type="link" href={`/view-application/${record._id}`} target="_blank">
-              View Application
-            </Button>
           </>
         );
       }
@@ -206,7 +204,7 @@ const HiringManagementPage = () => {
                 key: 'pending',
                 children: (
                   <Table
-                    columns={columnsApplications}
+                    columns={getColumnsByStatus('pending')}
                     dataSource={applications.pending}
                     rowKey="_id"
                     pagination={{ pageSize: 5 }}
@@ -218,7 +216,7 @@ const HiringManagementPage = () => {
                 key: 'approved',
                 children: (
                   <Table
-                    columns={columnsApplications}
+                    columns={getColumnsByStatus('approved')}
                     dataSource={applications.approved}
                     rowKey="_id"
                     pagination={{ pageSize: 5 }}
@@ -230,7 +228,7 @@ const HiringManagementPage = () => {
                 key: 'rejected',
                 children: (
                   <Table
-                    columns={columnsApplications}
+                    columns={getColumnsByStatus('rejected')}
                     dataSource={applications.rejected}
                     rowKey="_id"
                     pagination={{ pageSize: 5 }}
