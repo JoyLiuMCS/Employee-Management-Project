@@ -159,7 +159,6 @@ const VisaStatusPage = () => {
 
   return (
     <>
-      <Navbar />
       <div style={{ maxWidth: '900px', margin: '2rem auto' }}>
         <Title level={2} style={{ textAlign: 'center' }}>Visa Document Center</Title>
 

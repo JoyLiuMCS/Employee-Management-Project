@@ -137,7 +137,6 @@ const ProfilePage = () => {
 
   return (
     <>
-      <Navbar />
       <div style={{ maxWidth: '800px', margin: '2rem auto' }}>
         <Card
           title="My Profile"
