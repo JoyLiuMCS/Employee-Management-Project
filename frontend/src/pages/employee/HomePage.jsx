@@ -5,7 +5,6 @@ const { Title, Paragraph } = Typography;
 const HomePage = () => {
   return (
     <>
-    <Navbar />
     <div style={{ maxWidth: '800px', margin: '2rem auto' }}>
       <Card>
         <Title>Welcome to Employee Portal!</Title>
