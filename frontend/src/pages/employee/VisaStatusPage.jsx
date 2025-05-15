@@ -7,7 +7,7 @@ import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import api from '../../utils/api';
-import Navbar from '../../components/Navbar';
+
 
 const { Title } = Typography;
 
@@ -28,12 +28,21 @@ const VisaStatusPage = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [user, setUser] = useState(null);
   const [profileLoading, setProfileLoading] = useState(false);
-
+  const [onboardingApplication, setOnboardingApplication] = useState(null);
+  const fetchOnboardingApplication = async () => {
+    try {
+      const res = await api.get('/onboarding/status');
+      setOnboardingApplication(res.data);
+    } catch (err) {
+      console.error('Failed to load onboarding application', err);
+    }
+  };
   useEffect(() => {
     if (!auth.token) {
       setTimeout(() => navigate('/login?redirect=visa-status'), 300);
     } else {
       fetchProfile();
+      fetchOnboardingApplication(); 
       fetchVisaRecords();
     }
   }, [auth.token]);
@@ -145,7 +154,7 @@ const VisaStatusPage = () => {
 
   if (profileLoading) return <Spin style={{ marginTop: '3rem' }} size="large" />;
 
-  if (user?.visaType !== 'F1') {
+  if (onboardingApplication?.visaType !== 'F1') {
     return (
       <Alert
         message="Not Applicable"
@@ -154,8 +163,7 @@ const VisaStatusPage = () => {
         showIcon
         style={{ maxWidth: 600, margin: '3rem auto' }}
       />
-    );
-  }
+    );}
 
   return (
     <>

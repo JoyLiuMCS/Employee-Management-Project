@@ -18,6 +18,7 @@ const ProfilePage = () => {
   const [loading, setLoading] = useState(false);
   const [pageLoading, setPageLoading] = useState(false);
   const [user, setUser] = useState(null);
+  const [application, setApplication] = useState(null);
   const [applicationStatus, setApplicationStatus] = useState(null);
   const [documents, setDocuments] = useState([]);
   const navigate = useNavigate();
@@ -31,6 +32,7 @@ const ProfilePage = () => {
     } else {
       fetchProfile();
       fetchApplicationStatus();
+      fetchApplicationDetails();
       fetchDocuments();
     }
   }, [auth.token, navigate]);
@@ -55,6 +57,15 @@ const ProfilePage = () => {
       setApplicationStatus(res.data.status);
     } catch (err) {
       console.error('Error fetching onboarding status:', err);
+    }
+  };
+
+  const fetchApplicationDetails = async () => {
+    try {
+      const res = await api.get('/onboarding/status');
+      setApplication(res.data.application || res.data);
+    } catch (err) {
+      console.error('Error fetching onboarding application:', err);
     }
   };
 
@@ -124,8 +135,14 @@ const ProfilePage = () => {
 
   const handleDownload = (filename) => {
     const url = `http://localhost:3000/uploads/${filename}`;
-    window.open(url, '_blank');
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;  // ✅ 触发下载而不是预览
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
+  
 
   if (pageLoading || !user) {
     return (
@@ -173,35 +190,65 @@ const ProfilePage = () => {
               </Form>
             ) : (
               <>
-                <Title level={4}>Personal Information</Title>
-                <Text><b>First Name:</b> {user.firstName}</Text><br />
-                <Text><b>Last Name:</b> {user.lastName}</Text><br />
-                <Text><b>Email:</b> {user.email}</Text><br />
-                <Text><b>Phone:</b> {user.phoneNumber}</Text><br />
-                <Text><b>Gender:</b> {user.gender}</Text><br />
-                <Text><b>Date of Birth:</b> {user.dateOfBirth?.slice(0, 10)}</Text><br />
+  <Title level={4}>Personal Information</Title>
+  <Text><b>First Name:</b> {user.firstName}</Text><br />
+  <Text><b>Last Name:</b> {user.lastName}</Text><br />
+  <Text><b>Email:</b> {user.email}</Text><br />
+  <Text><b>Phone:</b> {user.phoneNumber}</Text><br />
+  <Text><b>Gender:</b> {user.gender}</Text><br />
+  <Text><b>Date of Birth:</b> {user.dateOfBirth?.slice(0, 10)}</Text><br />
 
-                <Title level={4} style={{ marginTop: '2rem' }}>Address</Title>
-                <Text><b>Building/Apt:</b> {user.address?.building}</Text><br />
-                <Text><b>Street:</b> {user.address?.street}</Text><br />
-                <Text><b>City:</b> {user.address?.city}</Text><br />
-                <Text><b>State:</b> {user.address?.state}</Text><br />
-                <Text><b>ZIP:</b> {user.address?.zip}</Text><br />
+  <Title level={4} style={{ marginTop: '2rem' }}>Address</Title>
+  <Text><b>Building/Apt:</b> {user.address?.building}</Text><br />
+  <Text><b>Street:</b> {user.address?.street}</Text><br />
+  <Text><b>City:</b> {user.address?.city}</Text><br />
+  <Text><b>State:</b> {user.address?.state}</Text><br />
+  <Text><b>ZIP:</b> {user.address?.zip}</Text><br />
 
-                <Title level={4} style={{ marginTop: '2rem' }}>Uploaded Documents</Title>
-                {documents.length > 0 ? (
-                  documents.map((doc) => (
-                    <div key={doc._id} style={{ marginBottom: '1rem' }}>
-                      <Text>{doc.filename}</Text><br />
-                      <Button type="link" onClick={() => handleDownload(doc.filename)}>
-                        Download / Preview
-                      </Button>
-                    </div>
-                  ))
-                ) : (
-                  <Text>No documents uploaded yet.</Text>
-                )}
-              </>
+  <Title level={4} style={{ marginTop: '2rem' }}>Employment</Title>
+  <Text><b>Visa Title:</b> {application?.visaType || user.visaTitle || user.workAuthorizationTitle || 'N/A'}</Text><br />
+  <Text><b>Start Date:</b> {application?.workAuthorizationStart ? dayjs(application.workAuthorizationStart).format('YYYY-MM-DD') : (user.visaStartDate ? dayjs(user.visaStartDate).format('YYYY-MM-DD') : 'N/A')}</Text><br />
+<Text><b>End Date:</b> {application?.workAuthorizationEnd ? dayjs(application.workAuthorizationEnd).format('YYYY-MM-DD') : (user.visaEndDate ? dayjs(user.visaEndDate).format('YYYY-MM-DD') : 'N/A')}</Text><br />
+
+{application?.visaType === 'Other' && (
+  <Text><b>Other Visa Title:</b> {application?.otherVisaTitle || 'N/A'}</Text>
+)}
+
+
+
+  <Title level={4} style={{ marginTop: '2rem' }}>Emergency Contact</Title>
+  {user.emergencyContacts && user.emergencyContacts.length > 0 ? (
+    user.emergencyContacts.map((contact, index) => (
+      <div key={index} style={{ marginBottom: '1rem' }}>
+        <Text><b>Name:</b> {contact.firstName} {contact.middleName} {contact.lastName}</Text><br />
+        <Text><b>Phone:</b> {contact.phone}</Text><br />
+        <Text><b>Email:</b> {contact.email}</Text><br />
+        <Text><b>Relationship:</b> {contact.relationship}</Text><br />
+      </div>
+    ))
+  ) : (
+    <Text>No emergency contact provided.</Text>
+  )}
+
+  <Title level={4} style={{ marginTop: '2rem' }}>Uploaded Documents</Title>
+  {documents.length > 0 ? (
+    documents.map((doc) => (
+      <div key={doc._id} style={{ marginBottom: '1rem' }}>
+        <Text>{doc.filename}</Text><br />
+        <Button type="link" onClick={() => window.open(`http://localhost:3000/uploads/${doc.filename}`, '_blank')}>
+          Preview
+        </Button>
+        <a href={`http://localhost:3000/uploads/${doc.filename}`} download={doc.originalName || doc.filename}>
+  <Button type="link">Download</Button>
+</a>
+
+      </div>
+    ))
+  ) : (
+    <Text>No documents uploaded yet.</Text>
+  )}
+</>
+
             )}
           </Space>
         </Card>

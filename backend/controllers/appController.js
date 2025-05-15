@@ -8,7 +8,7 @@ const getOnboardingStatus = async (req, res, next) => {
     const userId = req.user.userId;
     const application = await OnboardingApplication.findOne({ userId });
     if (!application) return res.json({ status: 'never_submitted' });
-    return res.json({ status: application.status });
+    return res.json(application);
   } catch (err) {
     next(err);
   }
