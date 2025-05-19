@@ -28,35 +28,35 @@ const LoginPage = () => {
       showLoading('Logging in...');
       const res = await api.post('/auth/login', values);
       const { user, accessToken } = res.data;
-
+  
       dispatch(loginSuccess({ user, token: accessToken }));
       localStorage.setItem('token', accessToken);
       localStorage.setItem('user', JSON.stringify(user));
       showSuccess('Login successful!');
-
-      // 登录成功后拉取 onboarding 状态
+  
+      // 获取 onboarding 状态
       const onboardingRes = await api.get('/onboarding/status');
       const onboardingStatus = onboardingRes.data.status;
-
+  
       const params = new URLSearchParams(location.search);
       const redirectParam = params.get('redirect');
-
+  
       if (redirectParam) {
-        navigate(redirectParam);
+        if (onboardingStatus === 'never_submitted' || onboardingStatus === 'rejected') {
+          navigate('/onboarding');
+        } else {
+          navigate('/home'); // 无论 redirect 是什么，只要 onboarding 已提交就导向 home
+        }
       } else {
         if (user.role === 'hr') {
           navigate('/hr/dashboard');
         } else if (onboardingStatus === 'never_submitted' || onboardingStatus === 'rejected') {
           navigate('/onboarding');
-        } else if (onboardingStatus === 'pending') {
-          navigate('/profile');
-        } else if (onboardingStatus === 'approved') {
-          navigate('/home');
         } else {
-          navigate('/profile'); // fallback保险
+          navigate('/home');  // 已提交的直接进首页，无论 pending 还是 approved
         }
       }
-
+  
     } catch (err) {
       console.error(err);
       showError('Login failed. Please check your credentials.');
@@ -64,6 +64,7 @@ const LoginPage = () => {
       hideLoading();
     }
   };
+  
 
   return (
     <div style={{ display: 'flex', height: '100vh', justifyContent: 'center', alignItems: 'center' }}>

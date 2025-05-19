@@ -20,8 +20,10 @@ const documentSchema = new mongoose.Schema({
   },
   type: {
     type: String,
-    required: true,
+    enum: ['profile_picture', 'drivers_license', 'general_work_auth', 'opt_receipt', 'opt_ead', 'i_983', 'i_20'],
+    required: true
   },
+  
   status: {
     type: String,
     enum: ['pending', 'approved', 'rejected'],

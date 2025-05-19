@@ -206,6 +206,7 @@ const ProfilePage = () => {
   <Text><b>ZIP:</b> {user.address?.zip}</Text><br />
 
   <Title level={4} style={{ marginTop: '2rem' }}>Employment</Title>
+  {console.log('User data in ProfilePage:', user)}
   <Text><b>Visa Title:</b> {application?.visaType || user.visaTitle || user.workAuthorizationTitle || 'N/A'}</Text><br />
   <Text><b>Start Date:</b> {application?.workAuthorizationStart ? dayjs(application.workAuthorizationStart).format('YYYY-MM-DD') : (user.visaStartDate ? dayjs(user.visaStartDate).format('YYYY-MM-DD') : 'N/A')}</Text><br />
 <Text><b>End Date:</b> {application?.workAuthorizationEnd ? dayjs(application.workAuthorizationEnd).format('YYYY-MM-DD') : (user.visaEndDate ? dayjs(user.visaEndDate).format('YYYY-MM-DD') : 'N/A')}</Text><br />

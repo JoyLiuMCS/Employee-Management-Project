@@ -16,12 +16,19 @@ const downloadDocument = (req, res, next) => {
   });
 };
 
-// 上传文档（修复了 fileUrl 和 originalName 必填的问题）
+
+// 上传文档（修复 type 必填问题）
 const uploadDocument = async (req, res, next) => {
   try {
     const file = req.file;
+    const { type } = req.body;
+
     if (!file) {
       return res.status(400).json({ success: false, message: 'No file uploaded.' });
+    }
+
+    if (!type) {
+      return res.status(400).json({ success: false, message: 'Document type is required.' });
     }
 
     const newDoc = new Document({
@@ -29,12 +36,14 @@ const uploadDocument = async (req, res, next) => {
       filename: file.filename,
       originalName: file.originalname,
       fileUrl: `/uploads/${file.filename}`,
+      type,  // ✅ 关键修正：保存类型
       status: 'pending',
     });
 
     await newDoc.save();
     res.status(201).json({ message: 'Document uploaded successfully', document: newDoc });
   } catch (err) {
+    console.error('Upload error:', err);
     next(err);
   }
 };

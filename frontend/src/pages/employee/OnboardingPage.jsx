@@ -16,6 +16,9 @@ const OnboardingPage = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const auth = useSelector((state) => state.auth);
+  const [application, setApplication] = useState(null);
+  const [status, setStatus] = useState(null);
+
 
   useEffect(() => {
     const checkAccess = async () => {
@@ -23,22 +26,26 @@ const OnboardingPage = () => {
         setTimeout(() => navigate('/login?redirect=onboarding'), 100);
         return;
       }
-
+  
       try {
         const res = await api.get('/onboarding/status');
-        const status = res.data.status;
-        if (status === 'pending') {
+        setApplication(res.data);
+        setStatus(res.data.status);
+  
+        if (res.data.status === 'pending') {
           navigate('/profile');
-        } else if (status === 'approved') {
+        } else if (res.data.status === 'approved') {
           navigate('/home');
         }
+        // ✅ rejected 状态保留在当前页面
       } catch (err) {
         console.error('❌ Failed to fetch onboarding status:', err);
       }
     };
-
+  
     checkAccess();
   }, [auth.token, navigate]);
+  
 
   const onFinish = async (values) => {
     try {
@@ -116,13 +123,17 @@ const OnboardingPage = () => {
       }}
       style={{ maxWidth: 500, margin: '0 auto' }}
     >
+      {status === 'rejected' && application?.rejectionReason && (
+      <div style={{ marginBottom: '1rem', color: 'red', border: '1px solid red', padding: '0.5rem' }}>
+        <strong>Your application was rejected:</strong> {application.rejectionReason}
+      </div>
+    )}
       <PersonalInfoForm />
       <AddressForm />
       <ContactInfoForm />
       <VisaInfoForm />
       <EmergencyContactForm />
       <UploadDocumentsForm />
-
       <Form.Item style={{ textAlign: 'center', marginTop: '2rem' }}>
         <Button type="primary" htmlType="submit" loading={loading}>
           Submit Onboarding Application

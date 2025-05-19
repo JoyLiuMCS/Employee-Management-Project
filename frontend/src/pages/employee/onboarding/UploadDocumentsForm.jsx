@@ -20,70 +20,31 @@ const UploadDocumentsForm = () => {
       }
       return true;
     },
-    customRequest: ({ file, onSuccess }) => {
-      setTimeout(() => {
-        onSuccess('ok'); // 假上传
-      }, 0);
-    },
+    customRequest: ({ file, onSuccess }) => setTimeout(() => onSuccess('ok'), 0),
   };
 
   const handleProfileChange = (info) => {
     if (info.file.status === 'done') {
       const reader = new FileReader();
-      reader.onload = (e) => {
-        setProfilePreview(e.target.result);
-      };
+      reader.onload = (e) => setProfilePreview(e.target.result);
       reader.readAsDataURL(info.file.originFileObj);
     }
   };
 
   return (
     <>
-      <h2>Upload Required Documents</h2>
+      <h2>Upload Optional Documents</h2>
 
-      <Form.Item
-        label="Profile Picture"
-        name="profilePicture"
-        valuePropName="file"
-        getValueFromEvent={(e) => e.file}
-        rules={[{ required: true, message: 'Profile picture is required' }]}
-      >
-        <Upload 
-          {...uploadProps} 
-          maxCount={1} 
-          showUploadList={false} 
-          onChange={handleProfileChange}
-        >
-          <Avatar 
-            src={profilePreview || '/default-avatar.png'} 
-            size={100} 
-            style={{ border: '1px solid #d9d9d9' }} 
-          />
+      <Form.Item label="Profile Picture (Optional)" name="profilePicture" valuePropName="file" getValueFromEvent={(e) => e.file}>
+        <Upload {...uploadProps} maxCount={1} showUploadList={false} onChange={handleProfileChange}>
+          <Avatar src={profilePreview || '/default-avatar.png'} size={100} style={{ border: '1px solid #d9d9d9' }} />
           <div style={{ marginTop: '8px' }}>
             <Button icon={<UploadOutlined />}>Upload</Button>
           </div>
         </Upload>
       </Form.Item>
 
-      <Form.Item
-        label="Driver's License"
-        name="driversLicense"
-        valuePropName="file"
-        getValueFromEvent={(e) => e.file}
-        rules={[{ required: true, message: 'Driver\'s license is required' }]}
-      >
-        <Upload {...uploadProps} maxCount={1}>
-          <Button icon={<UploadOutlined />}>Click to Upload</Button>
-        </Upload>
-      </Form.Item>
-
-      <Form.Item
-        label="Work Authorization Document"
-        name="workAuthorization"
-        valuePropName="file"
-        getValueFromEvent={(e) => e.file}
-        rules={[{ required: true, message: 'Work authorization document is required' }]}
-      >
+      <Form.Item label="Driver's License (Optional)" name="driversLicense" valuePropName="file" getValueFromEvent={(e) => e.file}>
         <Upload {...uploadProps} maxCount={1}>
           <Button icon={<UploadOutlined />}>Click to Upload</Button>
         </Upload>

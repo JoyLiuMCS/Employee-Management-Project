@@ -30,6 +30,7 @@ const Navbar = () => {
 
   const employeeMenu = (
     <Menu onClick={handleMenuClick}>
+      <Menu.Item key="/home">Home</Menu.Item>
       <Menu.Item key="/profile">Personal Information</Menu.Item>
       <Menu.Item key="/visa-status">Visa Status Management</Menu.Item>
     </Menu>
