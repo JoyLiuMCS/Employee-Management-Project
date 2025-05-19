@@ -1,10 +1,9 @@
-// backend/models/Document.js
 const mongoose = require('mongoose');
 
 const documentSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User', 
+    ref: 'User',
     required: true,
   },
   filename: {
@@ -15,11 +14,20 @@ const documentSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  originalName: { type: String, required: true },
+  originalName: {
+    type: String,
+    required: true,
+  },
+  type: {
+    type: String,
+    enum: ['profile_picture', 'drivers_license', 'general_work_auth', 'opt_receipt', 'opt_ead', 'i_983', 'i_20'],
+    required: true
+  },
+  
   status: {
     type: String,
     enum: ['pending', 'approved', 'rejected'],
-    default: 'pending', 
+    default: 'pending',
   },
   feedback: {
     type: String,
@@ -34,3 +42,4 @@ const documentSchema = new mongoose.Schema({
 const Document = mongoose.model('Document', documentSchema);
 
 module.exports = Document;
+

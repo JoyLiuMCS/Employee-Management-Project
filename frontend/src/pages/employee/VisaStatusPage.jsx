@@ -1,17 +1,13 @@
-import {
-  Card, Upload, Button, Table, Typography,
-  message, Spin, Select, Alert
-} from 'antd';
+import { Card, Upload, Button, Table, Typography, message, Spin, Alert } from 'antd';
 import { UploadOutlined } from '@ant-design/icons';
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import api from '../../utils/api';
-import Navbar from '../../components/Navbar';
 
 const { Title } = Typography;
 
-const steps = ['opt_receipt', 'opt_ead', 'i_983', 'i_20'];
+const stepsF1 = ['opt_receipt', 'opt_ead', 'i_983', 'i_20'];
 const stepLabels = {
   opt_receipt: 'OPT Receipt',
   opt_ead: 'OPT EAD',
@@ -23,53 +19,53 @@ const VisaStatusPage = () => {
   const navigate = useNavigate();
   const auth = useSelector((state) => state.auth);
   const [records, setRecords] = useState([]);
+  const [onboardingApp, setOnboardingApp] = useState(null);
   const [loading, setLoading] = useState(false);
   const [fileList, setFileList] = useState([]);
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [user, setUser] = useState(null);
-  const [profileLoading, setProfileLoading] = useState(false);
 
   useEffect(() => {
     if (!auth.token) {
-      setTimeout(() => navigate('/login?redirect=visa-status'), 300);
+      navigate('/login?redirect=visa-status');
     } else {
-      fetchProfile();
-      fetchVisaRecords();
+      loadOnboardingApp();
+      loadMyDocuments();
     }
   }, [auth.token]);
 
-  const fetchProfile = async () => {
-    try {
-      setProfileLoading(true);
-      const res = await api.get(`/users/${auth.user.id}`);
-      setUser(res.data);
-    } catch {
-      message.error('Failed to load profile info.');
-    } finally {
-      setProfileLoading(false);
-    }
+  const loadOnboardingApp = async () => {
+    const res = await api.get('/onboarding/status');
+    setOnboardingApp(res.data);
   };
 
-  const fetchVisaRecords = async () => {
-    try {
-      const res = await api.get('/documents/my');
-      setRecords(res.data || []);
-    } catch {
-      message.error('Could not load your visa documents.');
+  const loadMyDocuments = async () => {
+    const res = await api.get('/documents/my');
+    setRecords(res.data || []);
+  };
+
+  const getDocumentByType = (type) => records.find(doc => doc.type === type);
+
+  const getFeedbackMessage = (step, status, feedback) => {
+    if (status === 'pending') return `Waiting for HR to approve your ${stepLabels[step]}.`;
+    if (status === 'rejected') return `Rejected: ${feedback || 'Please re-upload.'}`;
+    if (status === 'approved') {
+      if (step === 'opt_receipt') return 'Please upload a copy of your OPT EAD.';
+      if (step === 'opt_ead') return 'Please download and fill out the I-983 form.';
+      if (step === 'i_983') return 'Please send the I-983 to your school and upload your I-20.';
+      if (step === 'i_20') return 'All documents have been approved.';
     }
+    return '';
   };
 
   const getNextStep = () => {
-    for (const step of steps) {
-      const doc = records.find((r) => r.type === step);
+    for (const step of stepsF1) {
+      const doc = getDocumentByType(step);
       if (!doc || doc.status === 'rejected') return step;
-      if (doc.status !== 'approved') return null;
+      if (doc.status === 'pending') return null;
     }
     return null;
   };
 
   const currentStep = getNextStep();
-  const currentRejectedRecord = records.find((r) => r.type === currentStep && r.status === 'rejected');
 
   const handleUpload = async ({ file }) => {
     const formData = new FormData();
@@ -77,159 +73,93 @@ const VisaStatusPage = () => {
     formData.append('type', currentStep);
 
     try {
-      message.loading({ content: 'Uploading...', key: 'upload' });
-      await api.post('/documents/upload', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-      message.success({ content: 'Uploaded successfully!', key: 'upload', duration: 2 });
+      message.loading('Uploading...');
+      await api.post('/documents/upload', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+      message.success('Uploaded successfully!');
       setFileList([]);
-      fetchVisaRecords();
+      loadMyDocuments();
     } catch {
-      message.error({ content: 'Upload failed.', key: 'upload' });
+      message.error('Upload failed.');
     }
   };
 
-  const filtered = records.filter(r => statusFilter === 'all' || r.status === statusFilter);
+  if (!onboardingApp) return <Spin size="large" style={{ marginTop: '2rem' }} />;
 
-  const columns = [
-    {
-      title: 'Document Type',
-      dataIndex: 'type',
-      key: 'type',
-      render: (type) => stepLabels[type] || type,
-    },
-    {
-      title: 'Status',
-      dataIndex: 'status',
-      key: 'status',
-      render: (s) => {
-        const colors = { pending: '#faad14', approved: '#52c41a', rejected: '#ff4d4f' };
-        return <span style={{ color: colors[s] }}>{s.charAt(0).toUpperCase() + s.slice(1)}</span>;
-      },
-    },
-    {
-      title: 'Feedback',
-      dataIndex: 'feedback',
-      key: 'feedback',
-      render: (f) => f || '--',
-    },
-    {
-      title: 'Uploaded At',
-      dataIndex: 'createdAt',
-      key: 'createdAt',
-      render: (text) => new Date(text).toLocaleString(),
-    },
-    {
-      title: 'Action',
-      key: 'action',
-      render: (_, record) => (
-        <>
-          <a
-            href={`http://localhost:3000/uploads/${record.filename}`}
-            target="_blank"
-            rel="noreferrer"
-            style={{ marginRight: 10 }}
-          >
-            Preview
-          </a>
-          <a
-            href={`http://localhost:3000/uploads/${record.filename}`}
-            download
-          >
-            Download
-          </a>
-        </>
-      ),
-    },
-  ];
-
-  if (profileLoading) return <Spin style={{ marginTop: '3rem' }} size="large" />;
-
-  if (user?.visaType !== 'F1') {
+  if (onboardingApp.visaType !== 'F1') {
     return (
       <Alert
         message="Not Applicable"
         description="Visa status tracking is only available for F1 visa holders."
         type="info"
         showIcon
-        style={{ maxWidth: 600, margin: '3rem auto' }}
+        style={{ maxWidth: 600, margin: '2rem auto' }}
       />
     );
   }
 
   return (
-    <>
-      <div style={{ maxWidth: '900px', margin: '2rem auto' }}>
-        <Title level={2} style={{ textAlign: 'center' }}>Visa Document Center</Title>
+    <div style={{ maxWidth: '900px', margin: '2rem auto' }}>
+      <Title level={2} style={{ textAlign: 'center' }}>Visa Document Center</Title>
 
-        <Card title={`Upload: ${stepLabels[currentStep] || 'All done!'}`} style={{ marginBottom: '2rem' }}>
-          {currentRejectedRecord && (
-            <Alert
-              type="error"
-              message="Document Rejected"
-              description={currentRejectedRecord.feedback || 'Please re-upload the document.'}
-              showIcon
-              style={{ marginBottom: '1rem' }}
-            />
-          )}
+      {stepsF1.map((step, index) => {
+        const doc = getDocumentByType(step);
+        const isCurrent = currentStep === step;
+        const messageText = getFeedbackMessage(step, doc?.status, doc?.feedback);
 
-          {currentStep === 'i_983' && (
-            <div style={{ marginBottom: '1rem' }}>
-              <Button
-                href="/templates/i983-empty.pdf"
-                target="_blank"
-                style={{ marginRight: 10 }}
-              >
-                Download Empty Template
-              </Button>
-              <Button
-                href="/templates/i983-sample.pdf"
-                target="_blank"
-                type="dashed"
-              >
-                Download Sample
-              </Button>
-            </div>
-          )}
+        return (
+          <Card key={step} title={stepLabels[step]} style={{ marginBottom: '1rem' }}>
+            <Alert message={messageText} type={doc?.status === 'rejected' ? 'error' : 'info'} showIcon style={{ marginBottom: '1rem' }} />
+            {step === 'i_983' && doc?.status === 'approved' && (
+              <div style={{ marginBottom: '1rem' }}>
+                <Button href="http://localhost:3000/public/templates/i983-empty.pdf" target="_blank" style={{ marginRight: 10 }}>
+                  Download Empty Template
+                </Button>
+                <Button href="http://localhost:3000/public/templates/i983-sample.pdf" target="_blank">
+                  Download Sample
+                </Button>
 
-          {currentStep ? (
+              </div>
+            )}
             <Upload
               customRequest={handleUpload}
               fileList={fileList}
               onChange={({ fileList }) => setFileList(fileList)}
               showUploadList={false}
+              disabled={!isCurrent}
               accept=".pdf,.jpg,.jpeg,.png"
             >
-              <Button type="primary" icon={<UploadOutlined />}>
-                Upload {stepLabels[currentStep]}
+              <Button type="primary" icon={<UploadOutlined />} disabled={!isCurrent}>
+                Upload {stepLabels[step]}
               </Button>
             </Upload>
-          ) : (
-            <Alert message="All documents uploaded and approved!" type="success" />
-          )}
-        </Card>
+          </Card>
+        );
+      })}
 
-        <Card title="Your Uploaded Documents">
-          <Select
-            value={statusFilter}
-            onChange={setStatusFilter}
-            style={{ marginBottom: '1rem', width: 200 }}
-            options={[
-              { value: 'all', label: 'All' },
-              { value: 'pending', label: 'Pending' },
-              { value: 'approved', label: 'Approved' },
-              { value: 'rejected', label: 'Rejected' },
-            ]}
-          />
-          <Table
-            dataSource={filtered}
-            columns={columns}
-            rowKey="_id"
-            pagination={false}
-          />
-        </Card>
-      </div>
-    </>
+      <Card title="Document Submission Records" style={{ marginTop: '2rem' }}>
+        <Table
+          dataSource={records}
+          rowKey="_id"
+          pagination={false}
+          columns={[
+            { title: 'Document Type', dataIndex: 'type', key: 'type', render: (type) => stepLabels[type] || type },
+            { title: 'Submitted Time', dataIndex: 'createdAt', key: 'createdAt', render: (t) => new Date(t).toLocaleString() },
+            { title: 'Status', dataIndex: 'status', key: 'status' },
+            { title: 'Feedback', dataIndex: 'feedback', key: 'feedback', render: (f) => f || '--' },
+            {
+              title: 'Action',
+              key: 'action',
+              render: (_, record) => (
+                <>
+                  <a href={`http://localhost:3000/uploads/${record.filename}`} target="_blank" style={{ marginRight: 10 }}>Preview</a>
+                  <a href={`http://localhost:3000/uploads/${record.filename}`} download>Download</a>
+                </>
+              )
+            }
+          ]}
+        />
+      </Card>
+    </div>
   );
 };
 

@@ -3,6 +3,7 @@ const User = require('../models/User');
 const path = require('path');
 const fs = require('fs');
 
+// 下载文档
 const downloadDocument = (req, res, next) => {
   const { filename } = req.params;
   const filePath = path.join(__dirname, '../uploads', filename);
@@ -15,20 +16,39 @@ const downloadDocument = (req, res, next) => {
   });
 };
 
+
+// 上传文档（修复 type 必填问题）
 const uploadDocument = async (req, res, next) => {
   try {
+    const file = req.file;
+    const { type } = req.body;
+
+    if (!file) {
+      return res.status(400).json({ success: false, message: 'No file uploaded.' });
+    }
+
+    if (!type) {
+      return res.status(400).json({ success: false, message: 'Document type is required.' });
+    }
+
     const newDoc = new Document({
       userId: req.user.userId,
-      filename: req.file.filename, 
-      status: 'pending', 
+      filename: file.filename,
+      originalName: file.originalname,
+      fileUrl: `/uploads/${file.filename}`,
+      type,  // ✅ 关键修正：保存类型
+      status: 'pending',
     });
+
     await newDoc.save();
-    res.status(201).json({ message: 'Document uploaded successfully' });
+    res.status(201).json({ message: 'Document uploaded successfully', document: newDoc });
   } catch (err) {
+    console.error('Upload error:', err);
     next(err);
   }
 };
 
+// 获取当前用户文档
 const getMyDocuments = async (req, res, next) => {
   try {
     const myDocuments = await Document.find({ userId: req.user.userId });
@@ -38,6 +58,7 @@ const getMyDocuments = async (req, res, next) => {
   }
 };
 
+// 获取 HR 端所有员工文档审核进度
 const getInProgressDocuments = async (req, res, next) => {
   try {
     const employees = await User.find({ role: 'employee' });
@@ -81,13 +102,14 @@ const getInProgressDocuments = async (req, res, next) => {
   }
 };
 
+// 批准文档
 const approveDocument = async (req, res, next) => {
   try {
     const docId = req.params.id;
     const doc = await Document.findById(docId);
     if (!doc) return res.status(404).json({ success: false, message: 'Document not found' });
 
-    doc.status = 'approved'; 
+    doc.status = 'approved';
     doc.feedback = '';
     await doc.save();
 
@@ -97,6 +119,7 @@ const approveDocument = async (req, res, next) => {
   }
 };
 
+// 拒绝文档
 const rejectDocument = async (req, res, next) => {
   try {
     const docId = req.params.id;
@@ -105,7 +128,7 @@ const rejectDocument = async (req, res, next) => {
     const doc = await Document.findById(docId);
     if (!doc) return res.status(404).json({ success: false, message: 'Document not found' });
 
-    doc.status = 'rejected'; 
+    doc.status = 'rejected';
     doc.feedback = feedback || 'Please resubmit the document.';
     await doc.save();
 
@@ -118,7 +141,7 @@ const rejectDocument = async (req, res, next) => {
 module.exports = {
   downloadDocument,
   uploadDocument,
-  getMyDocuments,         
+  getMyDocuments,
   getInProgressDocuments,
   approveDocument,
   rejectDocument,
