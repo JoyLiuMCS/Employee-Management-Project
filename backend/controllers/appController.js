@@ -7,7 +7,7 @@ const getOnboardingStatus = async (req, res, next) => {
   try {
     const userId = req.user.userId;
     const application = await OnboardingApplication.findOne({ userId })
-      .populate('documents');  // ✅ 关联文档
+      .populate('documents'); 
     if (!application) return res.json({ status: 'never_submitted' });
     return res.json(application);
   } catch (err) {
@@ -73,7 +73,7 @@ const submitApplication = async (req, res, next) => {
       visaType,
       workAuthorizationStart,
       workAuthorizationEnd,
-      optReceipt: hasOptReceipt || parseBool(req.body.optReceipt),  // ✅ 这里修复
+      optReceipt: hasOptReceipt || parseBool(req.body.optReceipt),
       optEAD: parseBool(optEAD),
       i983: parseBool(i983),
       i20: parseBool(i20),

@@ -58,7 +58,6 @@ const VisaInfoForm = () => {
             </Select>
           </Form.Item>
 
-          {/* F1 只显示 OPT Receipt */}
           {visaType === 'F1' && (
             <Form.Item label="Upload OPT Receipt" name="optReceipt" valuePropName="file" getValueFromEvent={(e) => e.file} rules={[{ required: true, message: 'OPT Receipt is required' }]}>
               <Upload {...uploadProps} maxCount={1}>
@@ -67,7 +66,6 @@ const VisaInfoForm = () => {
             </Form.Item>
           )}
 
-          {/* 其他签证需要 Work Authorization Document */}
           {visaType && visaType !== 'F1' && (
             <Form.Item label="Work Authorization Document" name="workAuthorization" valuePropName="file" getValueFromEvent={(e) => e.file} rules={[{ required: true, message: 'Work authorization document is required' }]}>
               <Upload {...uploadProps} maxCount={1}>

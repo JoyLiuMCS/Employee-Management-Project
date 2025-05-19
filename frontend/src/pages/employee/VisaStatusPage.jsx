@@ -111,8 +111,13 @@ const VisaStatusPage = () => {
             <Alert message={messageText} type={doc?.status === 'rejected' ? 'error' : 'info'} showIcon style={{ marginBottom: '1rem' }} />
             {step === 'i_983' && doc?.status === 'approved' && (
               <div style={{ marginBottom: '1rem' }}>
-                <Button href="/templates/i983-empty.pdf" target="_blank" style={{ marginRight: 10 }}>Download Empty Template</Button>
-                <Button href="/templates/i983-sample.pdf" target="_blank">Download Sample</Button>
+                <Button href="http://localhost:3000/public/templates/i983-empty.pdf" target="_blank" style={{ marginRight: 10 }}>
+                  Download Empty Template
+                </Button>
+                <Button href="http://localhost:3000/public/templates/i983-sample.pdf" target="_blank">
+                  Download Sample
+                </Button>
+
               </div>
             )}
             <Upload
